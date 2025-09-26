@@ -1,25 +1,27 @@
 package com.group.collectionOfRecipes.entities;
 
-import jakarta.persistence.*;
-import lombok.*;
 
-import java.time.LocalDateTime;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "favourites",
+@Table(name = "ratings",
         uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "recipe_id"}))
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Favourite {
+public class Rating {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
 
-    //много рецептов нравится одному пользователю и один рецепт нравится многим пользователям
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -28,12 +30,7 @@ public class Favourite {
     @JoinColumn(name = "recipe_id", nullable = false)
     private Recipe recipe;
 
-    @Column(name = "added_at")
-    private LocalDateTime addedAt;
-
-    @PrePersist
-    protected void init() {
-        addedAt = LocalDateTime.now();
-    }
+    @Column(name = "rating")
+    private Integer rating;
 
 }

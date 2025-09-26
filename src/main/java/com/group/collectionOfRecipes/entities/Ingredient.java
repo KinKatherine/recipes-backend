@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "ingredients")
@@ -22,7 +24,7 @@ public class Ingredient {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "name")
+    @Column(name = "name", unique = true, nullable = false)
     private String name;
 
     @Enumerated(EnumType.STRING)
@@ -30,6 +32,11 @@ public class Ingredient {
 
     @Column(name = "createdAt")
     private LocalDateTime createdAt;
+
+    //один ингредиент может быть во многих рецептах
+    @OneToMany(mappedBy = "ingredient", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<RecipeIngredientMapping> recipeMappings = new ArrayList<>();
 
     @PrePersist
     protected void init() {
