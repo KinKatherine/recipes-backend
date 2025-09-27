@@ -52,7 +52,7 @@
 
 ## 🚀 API Endpoints
 
-Сервис предоставляет **RESTful API**. Все защищенные эндпоинты требуют передачи **JWT-токена** в заголовке `Authorization: Bearer <token>`.
+Сервис предоставляет **RESTful API**.
 
 ### 1. Аутентификация (Authentication)
 
