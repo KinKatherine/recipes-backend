@@ -15,12 +15,18 @@ public class RegistrationUserDTO {
     @NotBlank()
     private String username;
 
+    @NotBlank
+    private String password;
+    @NotBlank
+
+    private String confirmPassword;
+
     @NotBlank()
     @Email
     private String email;
 
-    private UserRole role;    // сами настраиваем роль пользователя при создании - USER
+    //private UserRole role;    // сами настраиваем роль пользователя при создании - USER
 
-    @NotBlank()
-    private String photo;
+    /*@NotBlank()
+    private String photo;*/
 }
