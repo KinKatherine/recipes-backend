@@ -46,8 +46,6 @@
 
 
 <img width="956" height="670" alt="database" src="https://github.com/user-attachments/assets/fc5c4f71-c6b9-4ea2-b3f7-b5ecb9f9a88e" />
-***
-
 ---
 
 ## 🚀 API Endpoints
