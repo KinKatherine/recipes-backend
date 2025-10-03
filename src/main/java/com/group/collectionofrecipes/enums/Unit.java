@@ -1,4 +1,4 @@
-package com.group.collectionOfRecipes.enums;
+package com.group.collectionofrecipes.enums;
 
 public enum Unit {
 
