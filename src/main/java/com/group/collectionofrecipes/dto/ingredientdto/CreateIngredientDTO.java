@@ -1,24 +1,21 @@
-package com.group.collectionOfRecipes.dto.categoryDTO;
+package com.group.collectionofrecipes.dto.ingredientdto;
 
+import com.group.collectionofrecipes.enums.Unit;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreateCategoryDTO {
+public class CreateIngredientDTO {
 
     @NotBlank()
-    @Size(min = 3, max = 100)
+    @Size(min = 3, max = 50)
     private String name;
 
-    @NotBlank()
-    @Size(min = 10, max = 1000)
-    private String description;
-
+    @NotBlank
+    private Unit unit;
 }

@@ -1,6 +1,6 @@
-package com.group.collectionOfRecipes.dto.ingredientDTO;
+package com.group.collectionofrecipes.dto.ingredientdto;
 
-import com.group.collectionOfRecipes.enums.Unit;
+import com.group.collectionofrecipes.enums.Unit;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

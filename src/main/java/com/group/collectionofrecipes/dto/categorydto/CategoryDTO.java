@@ -1,4 +1,4 @@
-package com.group.collectionOfRecipes.dto.categoryDTO;
+package com.group.collectionofrecipes.dto.categorydto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,5 +13,4 @@ public class CategoryDTO {
     private Long id;
     private String name;
     private String description;
-
 }

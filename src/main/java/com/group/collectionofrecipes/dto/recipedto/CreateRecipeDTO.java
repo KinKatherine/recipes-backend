@@ -1,6 +1,11 @@
-package com.group.collectionOfRecipes.dto.recipeDTO;
+package com.group.collectionofrecipes.dto.recipedto;
 
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,7 +16,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreateRecipeDTO {                  ///это для Post - запросов
+public class CreateRecipeDTO {
+    //это для Post - запросов
 
     @NotBlank()
     @Size(min = 3, max = 100)
@@ -36,8 +42,6 @@ public class CreateRecipeDTO {                  ///это для Post - запр
     @Min(value = 1)
     @Max(value = 20)
     private Integer countOfServings;
-
-    private Long authorId;     //получу из Spring Security
 
     @NotNull()
     private Long categoryId;

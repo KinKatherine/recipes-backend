@@ -1,6 +1,6 @@
-package com.group.collectionOfRecipes.dto.userDTO;
+package com.group.collectionofrecipes.dto.userdto;
 
-import com.group.collectionOfRecipes.enums.UserRole;
+import com.group.collectionofrecipes.enums.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

@@ -1,4 +1,4 @@
-package com.group.collectionOfRecipes.dto.recipeDTO;
+package com.group.collectionofrecipes.dto.recipedto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +11,8 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class RecipeDTO {                /// это дто для Get - запросов
+public class RecipeDTO {
+    // это дто для Get - запросов
 
     private Long id;
     private String title;

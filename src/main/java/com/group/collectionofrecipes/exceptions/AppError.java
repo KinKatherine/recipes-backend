@@ -1,4 +1,4 @@
-package com.group.collectionOfRecipes.exceptions;
+package com.group.collectionofrecipes.exceptions;
 
 import lombok.Data;
 
