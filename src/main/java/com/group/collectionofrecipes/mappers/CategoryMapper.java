@@ -1,8 +1,8 @@
-package com.group.collectionOfRecipes.mappers;
+package com.group.collectionofrecipes.mappers;
 
-import com.group.collectionOfRecipes.dto.categoryDTO.CategoryDTO;
-import com.group.collectionOfRecipes.dto.categoryDTO.CreateCategoryDTO;
-import com.group.collectionOfRecipes.entities.Category;
+import com.group.collectionofrecipes.dto.categorydto.CategoryDTO;
+import com.group.collectionofrecipes.dto.categorydto.CreateCategoryDTO;
+import com.group.collectionofrecipes.entities.Category;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

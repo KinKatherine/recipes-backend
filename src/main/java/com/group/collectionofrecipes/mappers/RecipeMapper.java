@@ -1,10 +1,10 @@
-package com.group.collectionOfRecipes.mappers;
+package com.group.collectionofrecipes.mappers;
 
-import com.group.collectionOfRecipes.dto.recipeDTO.CreateRecipeDTO;
-import com.group.collectionOfRecipes.dto.recipeDTO.RecipeDTO;
-import com.group.collectionOfRecipes.entities.Category;
-import com.group.collectionOfRecipes.entities.Recipe;
-import com.group.collectionOfRecipes.entities.User;
+import com.group.collectionofrecipes.dto.recipedto.CreateRecipeDTO;
+import com.group.collectionofrecipes.dto.recipedto.RecipeDTO;
+import com.group.collectionofrecipes.entities.Category;
+import com.group.collectionofrecipes.entities.Recipe;
+import com.group.collectionofrecipes.entities.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -36,7 +36,7 @@ public class RecipeMapper {
     }
 
 
-    public Recipe toRecipeEntity(CreateRecipeDTO recipeDTO, User author, Category category) {
+    public Recipe toRecipeEntity(CreateRecipeDTO recipeDTO, User author, Category category, String image) {
         return Recipe.builder()
                 .title(recipeDTO.getTitle())
                 .description(recipeDTO.getDescription())
@@ -47,6 +47,7 @@ public class RecipeMapper {
                 .category(category)
                 .totalRating(0)
                 .countOfRatings(0L)
+                .image(image)
                 .build();
     }
 }

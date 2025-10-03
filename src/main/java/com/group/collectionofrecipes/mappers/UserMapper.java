@@ -1,7 +1,8 @@
-package com.group.collectionOfRecipes.mappers;
+package com.group.collectionofrecipes.mappers;
 
-import com.group.collectionOfRecipes.dto.userDTO.UserDTO;
-import com.group.collectionOfRecipes.entities.User;
+import com.group.collectionofrecipes.dto.userdto.RegistrationUserDTO;
+import com.group.collectionofrecipes.dto.userdto.UserDTO;
+import com.group.collectionofrecipes.entities.User;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -19,12 +20,10 @@ public class UserMapper {
         return dto;
     }
 
-    public User toUserEntity(UserDTO userDTO) {
+    public User toUserEntity(RegistrationUserDTO userDTO) {
         return User.builder()
                 .username(userDTO.getUsername())
                 .email(userDTO.getEmail())
-                .role(userDTO.getRole())
-                .photo(userDTO.getPhoto())
                 .build();
     }
 
