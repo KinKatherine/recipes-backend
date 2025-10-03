@@ -1,7 +1,16 @@
-package com.group.collectionOfRecipes.entities;
+package com.group.collectionofrecipes.entities;
 
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -31,6 +40,6 @@ public class Rating {
     private Recipe recipe;
 
     @Column(name = "rating")
-    private Integer rating;
+    private Integer estimation;
 
 }

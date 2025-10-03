@@ -1,7 +1,22 @@
-package com.group.collectionOfRecipes.entities;
+package com.group.collectionofrecipes.entities;
 
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +35,7 @@ public class Recipe {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "title",nullable = false)
+    @Column(name = "title", nullable = false)
     private String title;
 
     @Column(name = "description", length = 1000)
@@ -39,7 +54,6 @@ public class Recipe {
     private Integer countOfServings;
 
 
-
     @Column(name = "total_rating")
     private Integer totalRating;
 
@@ -50,12 +64,14 @@ public class Recipe {
     //много рецептов - один автор
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id", nullable = false)
-    private User author;                                  ///-FK
+    private User author;
+    //-FK
 
     //много рецептов - одна категория
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
-    private Category category;                           ///-FK
+    private Category category;
+    //-FK
 
     @Column(name = "createdAt")
     private LocalDateTime createdAt;
