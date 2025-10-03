@@ -1,14 +1,14 @@
-package com.group.collectionOfRecipes.services;
+package com.group.collectionofrecipes.services;
 
-import com.group.collectionOfRecipes.dto.categoryDTO.CategoryDTO;
-import com.group.collectionOfRecipes.dto.categoryDTO.CreateCategoryDTO;
-import com.group.collectionOfRecipes.dto.recipeDTO.RecipeDTO;
-import com.group.collectionOfRecipes.entities.Category;
-import com.group.collectionOfRecipes.entities.Recipe;
-import com.group.collectionOfRecipes.mappers.CategoryMapper;
-import com.group.collectionOfRecipes.mappers.RecipeMapper;
-import com.group.collectionOfRecipes.repositories.CategoryRepository;
-import com.group.collectionOfRecipes.repositories.RecipeRepository;
+import com.group.collectionofrecipes.dto.categorydto.CategoryDTO;
+import com.group.collectionofrecipes.dto.categorydto.CreateCategoryDTO;
+import com.group.collectionofrecipes.dto.recipedto.RecipeDTO;
+import com.group.collectionofrecipes.entities.Category;
+import com.group.collectionofrecipes.entities.Recipe;
+import com.group.collectionofrecipes.mappers.CategoryMapper;
+import com.group.collectionofrecipes.mappers.RecipeMapper;
+import com.group.collectionofrecipes.repositories.CategoryRepository;
+import com.group.collectionofrecipes.repositories.RecipeRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.group.collectionofrecipes.utils.ApiConstants.ERROR_CATEGORY_NOT_FOUND;
 
 @Service
 @Slf4j
@@ -32,8 +34,7 @@ public class CategoryService {
         log.info("Запрос на получение всех категорий");
         List<Category> categoryList = categoryRepository.findAll();
         List<CategoryDTO> categoryDTOList = new ArrayList<>();
-        for (Category i:categoryList)
-        {
+        for (Category i : categoryList) {
             categoryDTOList.add(categoryMapper.toCategoryDto(i));
         }
         log.info("Найдено {} категорий", categoryDTOList.size());
@@ -45,31 +46,26 @@ public class CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> {
                     log.error("Категория с ID {} не найдена", id);
-                    return new EntityNotFoundException("Category not found by id: " + id);
+                    return new EntityNotFoundException(ERROR_CATEGORY_NOT_FOUND + id);
                 });
         log.info("Категория с ID {} успешно найдена: {}", id, category.getName());
         return categoryMapper.toCategoryDto(category);
     }
 
+
     public CategoryDTO saveCategory(CreateCategoryDTO createCategoryDTO) {
         log.info("Запрос на создание новой категории: {}", createCategoryDTO.getName());
-
         try {
             Category category = categoryMapper.toCategoryEntity(createCategoryDTO);
             Category savedCategory = categoryRepository.save(category);
             log.info("Категория успешно создана: ID={}, Name={}", savedCategory.getId(), savedCategory.getName());
             return categoryMapper.toCategoryDto(savedCategory);
-        }
-        catch (DataIntegrityViolationException e)
-        {
+        } catch (DataIntegrityViolationException e) {
             log.error("Ошибка при создании категории: категория '{}' уже существует", createCategoryDTO.getName());
-            throw new IllegalArgumentException("Такая категория уже существует");
-        }
-        catch (Exception e) {
-            log.error("Неожиданная ошибка при создании категории: {}", e.getMessage());
-            throw e;
+            throw new IllegalArgumentException("Категория '" + createCategoryDTO.getName() + "' уже существует");
         }
     }
+
 
     public CategoryDTO deleteCategory(Long id) {
         log.info("Запрос на удаление категории с ID: {}", id);
@@ -77,7 +73,7 @@ public class CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> {
                     log.error("Категория с ID {} не найдена для удаления", id);
-                    return new EntityNotFoundException("Category not found by id: " + id);
+                    return new EntityNotFoundException(ERROR_CATEGORY_NOT_FOUND + id);
                 });
 
         if (!category.getRecipes().isEmpty()) {
@@ -91,6 +87,7 @@ public class CategoryService {
         return categoryMapper.toCategoryDto(category);
     }
 
+
     public CategoryDTO updateCategory(Long id, CreateCategoryDTO createCategoryDTO) {
         log.info("Запрос на обновление категории с ID: {}, новые данные: {}",
                 id, createCategoryDTO.getName());
@@ -102,9 +99,6 @@ public class CategoryService {
                         return new EntityNotFoundException("Category not found by id: " + id);
                     });
 
-            log.debug("Текущие данные категории: Name={}, Description={}",
-                    category.getName(), category.getDescription());
-
             category.setName(createCategoryDTO.getName());
             category.setDescription(createCategoryDTO.getDescription());
 
@@ -115,8 +109,7 @@ public class CategoryService {
             log.error("Ошибка при обновлении категории: категория с названием '{}' уже существует",
                     createCategoryDTO.getName());
             throw new IllegalArgumentException("Категория с таким названием уже существует");
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             log.error("Неожиданная ошибка при обновлении категории с ID {}: {}", id, e.getMessage());
             throw e;
         }
@@ -125,7 +118,7 @@ public class CategoryService {
     public List<RecipeDTO> getRecipesByCategoryId(Long id) {
         log.info("Запрос на получение рецептов для категории с ID: {}", id);
 
-        Category category = categoryRepository.findById(id)
+        categoryRepository.findById(id)
                 .orElseThrow(() -> {
                     log.error("Категория с ID {} не найдена при запросе рецептов", id);
                     return new EntityNotFoundException("Category not found by id: " + id);
@@ -133,8 +126,7 @@ public class CategoryService {
 
         List<Recipe> recipes = recipeRepository.findRecipesByCategoryId(id);
         List<RecipeDTO> recipeDTOList = new ArrayList<>();
-        for (Recipe i: recipes)
-        {
+        for (Recipe i : recipes) {
             recipeDTOList.add(recipeMapper.toRecipeDto(i));
         }
 
