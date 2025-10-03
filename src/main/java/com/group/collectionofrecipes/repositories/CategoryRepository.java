@@ -1,6 +1,6 @@
-package com.group.collectionOfRecipes.repositories;
+package com.group.collectionofrecipes.repositories;
 
-import com.group.collectionOfRecipes.entities.Category;
+import com.group.collectionofrecipes.entities.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
