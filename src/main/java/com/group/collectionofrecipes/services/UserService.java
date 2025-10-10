@@ -1,8 +1,11 @@
-package com.group.collectionOfRecipes.services;
+package com.group.collectionofrecipes.services;
 
-import com.group.collectionOfRecipes.entities.User;
-import com.group.collectionOfRecipes.enums.UserRole;
-import com.group.collectionOfRecipes.repositories.UserRepository;
+import com.group.collectionofrecipes.dto.userdto.RegistrationUserDTO;
+import com.group.collectionofrecipes.dto.userdto.UserDTO;
+import com.group.collectionofrecipes.entities.User;
+import com.group.collectionofrecipes.enums.UserRole;
+import com.group.collectionofrecipes.mappers.UserMapper;
+import com.group.collectionofrecipes.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -11,6 +14,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,15 +22,20 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
-    public Optional<User> findByUsername(String username){
+    public Optional<User> findByUsername(String username) {
         return userRepository.findByUsername(username);
+    }
+
+    public Optional<User> findByUserEmail(String username) {
+        return userRepository.findByEmail(username);
     }
 
     @Override
     @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = findByUsername(username).orElseThrow(()-> new UsernameNotFoundException(
+        User user = findByUsername(username).orElseThrow(() -> new UsernameNotFoundException(
                 String.format("Пользователь '%s' не найден", username)
         ));
         return new org.springframework.security.core.userdetails.User(
@@ -36,14 +45,11 @@ public class UserService implements UserDetailsService {
         );
     }
 
-    public void  createNewUser(User user){
-        //проверка на существование такого пользователя
-        User checkUser = findByUsername(user.getUsername()).orElse(null);
-        if (checkUser==null){
-            user.setRole(UserRole.USER);
-            userRepository.save(user);
-        }
 
-
+    public UserDTO saveUser(RegistrationUserDTO registrationUserDTO) {
+        User user = userMapper.toUserEntity(registrationUserDTO);
+        user.setRole(UserRole.USER);
+        user.setCreatedAt(LocalDateTime.now());
+        return userMapper.toUserDto(userRepository.save(user));
     }
 }

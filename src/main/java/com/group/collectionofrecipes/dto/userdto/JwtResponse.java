@@ -1,4 +1,4 @@
-package com.group.collectionOfRecipes.dto.userDTO;
+package com.group.collectionofrecipes.dto.userdto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
