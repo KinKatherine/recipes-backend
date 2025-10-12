@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <title th:remove="all">Подтверждение Email</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <style>
+
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+        .container { background-color: #ffffff; margin: 20px auto; padding: 20px; border-radius: 8px; max-width: 600px; border: 1px solid #ddd; }
+        .button { display: inline-block; padding: 10px 20px; margin-top: 15px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; }
+        .footer { margin-top: 20px; font-size: 0.8em; color: #777; text-align: center; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Добро пожаловать, <span th:text="${username}">Пользователь</span>!</h1>
+    <p>Спасибо за регистрацию на нашем сервисе. Пожалуйста, подтвердите ваш адрес электронной почты, перейдя по ссылке ниже:</p>
+
+    <a th:href="${verificationUrl}" class="button">
+        Подтвердить Email
+    </a>
+
+    <p style="margin-top: 30px;">Если кнопка не работает, скопируйте и вставьте следующую ссылку в адресную строку вашего браузера:</p>
+    <p><a th:href="${verificationUrl}" th:text="${verificationUrl}">Verification Link</a></p>
+
+    <p>С уважением,<br>Команда Сервиса</p>
+</div>
+<div class="footer">
+    <p>Это автоматическое письмо, пожалуйста, не отвечайте на него.</p>
+</div>
+</body>
+</html>

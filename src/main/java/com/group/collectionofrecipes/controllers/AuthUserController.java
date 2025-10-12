@@ -8,7 +8,9 @@ import com.group.collectionofrecipes.exceptions.AppError;
 import com.group.collectionofrecipes.services.UserService;
 import com.group.collectionofrecipes.utils.JwtTokenUtils;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,14 +21,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import static com.group.collectionofrecipes.utils.ApiConstants.FIELD_MESSAGE;
 import static com.group.collectionofrecipes.utils.ApiConstants.FIELD_STATUS;
 import static com.group.collectionofrecipes.utils.ApiConstants.FIELD_SUCCESS;
 
-@Tag(name = "authentication_methods")
+@Tag(name = "Authentications")
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 public class AuthUserController {
@@ -34,37 +36,57 @@ public class AuthUserController {
     private final JwtTokenUtils jwtTokenUtils;
     private final AuthenticationManager authenticationManager;
 
-    @PostMapping("/api/v1/auth/login") //узнавание пользователя логин и пароль
+    @PostMapping("/api/v1/auth/login")
     public ResponseEntity<Object> createAuthToken(@RequestBody JwtRequest authRequest) {
+        log.info("Post  /api/v1/auth/login");
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
-
         } catch (BadCredentialsException e) {
+            log.error("Ошибка аутентификации для пользователя: {}", authRequest.getUsername());
             return new ResponseEntity<>(new AppError(HttpStatus.UNAUTHORIZED.value(), "Неправильный логин или пароль"), HttpStatus.UNAUTHORIZED);
         }
 
         UserDetails userDetails = userService.loadUserByUsername(authRequest.getUsername());
         String token = jwtTokenUtils.generateToken(userDetails);
+        log.info("Успешный вход пользователя: {}", authRequest.getUsername());
         return ResponseEntity.ok(new JwtResponse(token));
     }
 
     @PostMapping("/api/v1/auth/register")
-    public ResponseEntity<Object> createNewUser(@RequestBody RegistrationUserDTO registrationUserDTO) {
-        if (!registrationUserDTO.getPassword().equals(registrationUserDTO.getConfirmPassword())) {
-            return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Пароли не совпадают"), HttpStatus.BAD_REQUEST);
-        }
+    public ResponseEntity<Object> createNewUser(@RequestBody @Valid RegistrationUserDTO registrationUserDTO) {
+        log.info("Post  /api/v1/auth/register");
+        try {
+            if (!registrationUserDTO.getPassword().equals(registrationUserDTO.getConfirmPassword())) {
+                log.error("Пароли не совпадают для пользователя: {}", registrationUserDTO.getUsername());
+                return ResponseEntity.badRequest()
+                        .body(new AppError(HttpStatus.BAD_REQUEST.value(), "Пароли не совпадают"));
+            }
 
-        if (userService.findByUsername(registrationUserDTO.getUsername()).isPresent()) { //
-            return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Пользователь с таким именем уже существует"), HttpStatus.BAD_REQUEST);
-        }
+            if (userService.findByUsername(registrationUserDTO.getUsername()).isPresent()) {
+                log.error("Пользователь с таким именем уже существует: {}", registrationUserDTO.getUsername());
+                return ResponseEntity.badRequest()
+                        .body(new AppError(HttpStatus.BAD_REQUEST.value(), "Пользователь с таким именем уже существует"));
+            }
 
-        if (userService.findByUserEmail(registrationUserDTO.getEmail()).isPresent()) { //
-            return new ResponseEntity<>(new AppError(HttpStatus.BAD_REQUEST.value(), "Пользователь с такой почтой уже существует"), HttpStatus.BAD_REQUEST);
+            if (userService.findByUserEmail(registrationUserDTO.getEmail()).isPresent()) {
+                log.error("Пользователь с такой почтой уже существует: {}", registrationUserDTO.getEmail());
+                return ResponseEntity.badRequest()
+                        .body(new AppError(HttpStatus.BAD_REQUEST.value(), "Пользователь с такой почтой уже существует"));
+            }
+
+            UserDTO userDTO = userService.saveUser(registrationUserDTO);
+            log.info("Пользователь успешно создан: {}", registrationUserDTO.getUsername());
+
+            Map<String, Object> response = Map.of(
+                    FIELD_STATUS, FIELD_SUCCESS,
+                    FIELD_MESSAGE, "Пользователь c id " + userDTO.getId() + " успешно создан. Проверьте почту для подтверждения."
+            );
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("Ошибка при создании пользователя: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new AppError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Ошибка при создании пользователя" + e.getMessage()));
         }
-        Map<String, Object> response = new HashMap<>();
-        UserDTO userDTO = userService.saveUser(registrationUserDTO);
-        response.put(FIELD_STATUS, FIELD_SUCCESS);
-        response.put(FIELD_MESSAGE, "Пользователь c id " + userDTO.getId() + " успешно создан");
-        return ResponseEntity.ok(response);
     }
 }

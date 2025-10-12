@@ -3,10 +3,13 @@ package com.group.collectionofrecipes.mappers;
 import com.group.collectionofrecipes.dto.userdto.RegistrationUserDTO;
 import com.group.collectionofrecipes.dto.userdto.UserDTO;
 import com.group.collectionofrecipes.entities.User;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class UserMapper {
+
 
     public UserDTO toUserDto(User user) {
         UserDTO dto = new UserDTO();
@@ -24,6 +27,7 @@ public class UserMapper {
         return User.builder()
                 .username(userDTO.getUsername())
                 .email(userDTO.getEmail())
+                .password(userDTO.getPassword())
                 .build();
     }
 

@@ -14,7 +14,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -47,14 +46,14 @@ public class SecurityConfig {
                         .requestMatchers(AUTH_URI).permitAll()
 
                         .requestMatchers(HttpMethod.POST, CATEGORIES_URI).hasRole(UserRole.ADMIN.name())
-                        .requestMatchers(HttpMethod.PUT, CATEGORIES_URI+"/**").hasRole(UserRole.ADMIN.name())
-                        .requestMatchers(HttpMethod.DELETE, CATEGORIES_URI+"/**").hasRole(UserRole.ADMIN.name())
-                        .requestMatchers(HttpMethod.GET, CATEGORIES_URI+"/**").permitAll()
+                        .requestMatchers(HttpMethod.PUT, CATEGORIES_URI + "/**").hasRole(UserRole.ADMIN.name())
+                        .requestMatchers(HttpMethod.DELETE, CATEGORIES_URI + "/**").hasRole(UserRole.ADMIN.name())
+                        .requestMatchers(HttpMethod.GET, CATEGORIES_URI + "/**").permitAll()
 
                         .requestMatchers(HttpMethod.POST, RECIPES_URI).authenticated()
-                        .requestMatchers(HttpMethod.DELETE, RECIPES_URI+"/**").hasRole(UserRole.ADMIN.name())
-                        .requestMatchers(HttpMethod.PUT, RECIPES_URI+"/**").hasRole(UserRole.ADMIN.name())
-                        .requestMatchers(HttpMethod.GET, RECIPES_URI+"/**").permitAll()
+                        .requestMatchers(HttpMethod.DELETE, RECIPES_URI + "/**").hasRole(UserRole.ADMIN.name())
+                        .requestMatchers(HttpMethod.PUT, RECIPES_URI + "/**").hasRole(UserRole.ADMIN.name())
+                        .requestMatchers(HttpMethod.GET, RECIPES_URI + "/**").permitAll()
 
                         .anyRequest().permitAll()
                 )
@@ -84,10 +83,6 @@ public class SecurityConfig {
         return source;
     }
 
-    @Bean
-    public BCryptPasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {

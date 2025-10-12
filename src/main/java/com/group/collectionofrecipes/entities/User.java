@@ -44,6 +44,13 @@ public class User {
     @Column(name = "password", nullable = false)
     private String password;
 
+
+    @Column(name = "verification_token", length = 64)
+    private String verificationToken;
+
+    @Column(name = "enabled")
+    private boolean enabled = false; // По умолчанию пользователь не активирован
+
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
