@@ -31,7 +31,7 @@ import static com.group.collectionofrecipes.utils.ApiConstants.FIELD_STATUS;
 import static com.group.collectionofrecipes.utils.ApiConstants.FIELD_SUCCESS;
 
 
-@Tag(name = "categories_methods")
+@Tag(name = "Categories")
 @RestController
 @RequiredArgsConstructor
 @Slf4j

@@ -3,7 +3,6 @@ package com.group.collectionofrecipes.controllers;
 import com.group.collectionofrecipes.dto.recipedto.CreateRecipeDTO;
 import com.group.collectionofrecipes.dto.recipedto.RecipeDTO;
 import com.group.collectionofrecipes.services.RecipeService;
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -37,7 +36,7 @@ import static com.group.collectionofrecipes.utils.ApiConstants.FIELD_STATUS;
 import static com.group.collectionofrecipes.utils.ApiConstants.FIELD_SUCCESS;
 
 
-@Tag(name = "recipes_methods")
+@Tag(name = "Recipes")
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -46,10 +45,10 @@ public class RecipeController {
     private final RecipeService recipeService;
 
 
-    @Operation(
+    /*@Operation(
             summary = "Возвращает все рецепты / по названию",
             description = "Возвращает список всех рецептов. Если указан параметр 'title', возвращает рецепты, соответствующие названию."
-    )
+    )*/
     @GetMapping("/api/v1/recipes")
     public ResponseEntity<Map<String, Object>> getAllRecipes(@RequestParam(name = "title", required = false) String title) {
         log.info("GET /api/v1/recipes");
