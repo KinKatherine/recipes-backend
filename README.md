@@ -45,7 +45,7 @@
 База данных спроектирована как нормализованная реляционная схема для обеспечения целостности данных о рецептах, ингредиентах, пользователях и их взаимодействиях.
 
 
-<img width="956" height="670" alt="database" src="https://github.com/user-attachments/assets/fc5c4f71-c6b9-4ea2-b3f7-b5ecb9f9a88e" />
+<img width="956" height="670" alt="database" src="https://github.com/KinKatherine/recipes-backend/blob/56db799d22d8b7aaae7cbe59e5582fc3f98661ea/sql/Database.jpg" />
 ---
 
 ## 🚀 API Endpoints
