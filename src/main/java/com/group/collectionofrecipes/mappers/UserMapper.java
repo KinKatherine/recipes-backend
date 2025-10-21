@@ -18,7 +18,6 @@ public class UserMapper {
         dto.setEmail(user.getEmail());
         dto.setRole(user.getRole());
         dto.setPhoto(user.getPhoto());
-        dto.setCountLikeRecipes(user.getFavourites().size());
 
         return dto;
     }
