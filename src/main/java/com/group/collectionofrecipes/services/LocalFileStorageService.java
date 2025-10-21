@@ -49,4 +49,8 @@ public class LocalFileStorageService {
             throw new SaveFileException("Could not store file " + fileName + ": " + ex.getMessage());
         }
     }
+
+    public void deleteFile(String file) {
+        //реализовать
+    }
 }
