@@ -22,10 +22,14 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.List;
 
 import static com.group.collectionofrecipes.utils.ApiConstants.AUTH_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.CATEGORIES_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.RECIPES_URI;
+import static com.group.collectionofrecipes.utils.ApiConstants.RECIPES_USER_ADDED_URI;
+import static com.group.collectionofrecipes.utils.ApiConstants.RECIPES_USER_FAVOURITES_URI;
+import static com.group.collectionofrecipes.utils.ApiConstants.RECIPE_ID_URI;
 
 @Configuration
 @EnableWebSecurity
@@ -51,10 +55,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, CATEGORIES_URI + "/**").permitAll()
 
                         .requestMatchers(HttpMethod.POST, RECIPES_URI).authenticated()
-                        .requestMatchers(HttpMethod.DELETE, RECIPES_URI + "/**").hasRole(UserRole.ADMIN.name())
+                        .requestMatchers(HttpMethod.DELETE, RECIPE_ID_URI).hasRole(UserRole.ADMIN.name())
                         .requestMatchers(HttpMethod.PUT, RECIPES_URI + "/**").hasRole(UserRole.ADMIN.name())
-                        .requestMatchers(HttpMethod.GET, RECIPES_URI + "/**").permitAll()
-
+                        .requestMatchers(HttpMethod.GET, RECIPES_URI+"/**").hasAnyAuthority("ROLE_ANONYMOUS", UserRole.USER.name(),UserRole.ADMIN.name())
+                        .requestMatchers(HttpMethod.GET, RECIPES_USER_FAVOURITES_URI).authenticated()
+                        .requestMatchers(HttpMethod.GET, RECIPES_USER_ADDED_URI).authenticated()
+                        .requestMatchers(HttpMethod.GET, RECIPE_ID_URI).hasAnyAuthority("ROLE_ANONYMOUS", UserRole.USER.name(),UserRole.ADMIN.name())
                         .anyRequest().permitAll()
                 )
                 .sessionManagement(session -> session
@@ -73,9 +79,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:4000"));
+        configuration.setAllowedOrigins(List.of("http://localhost:4000"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

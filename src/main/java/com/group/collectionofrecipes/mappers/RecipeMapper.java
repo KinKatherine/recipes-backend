@@ -8,30 +8,28 @@ import com.group.collectionofrecipes.entities.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+
 @Component
 @RequiredArgsConstructor
 public class RecipeMapper {
 
-
     public RecipeDTO toRecipeDto(Recipe recipe) {
 
-        return RecipeDTO.builder()
+         return RecipeDTO.builder()
                 .id(recipe.getId())
                 .title(recipe.getTitle())
                 .description(recipe.getDescription())
                 .instruction(recipe.getInstruction())
                 .cookingTime(recipe.getCookingTime())
                 .image(recipe.getImage())
-                .authorId(recipe.getAuthor().getId())
-                .categoryId(recipe.getCategory().getId())
-                .createdAt(recipe.getCreatedAt())
-                .authorUsername(recipe.getAuthor().getUsername())
                 .countOfServings(recipe.getCountOfServings())
+                .averageRating(0)
+                .authorId(recipe.getAuthor().getId())
+                .authorUsername(recipe.getAuthor().getUsername())
+                .categoryId(recipe.getCategory().getId())
                 .categoryName(recipe.getCategory().getName())
-                .likesCount(recipe.getFavoriteBy().size())
-                .commentsCount(recipe.getComments().size())
-                .averageRating(recipe.getTotalRating())
-                .countOfRatings(recipe.getCountOfRatings())
+                .createdAt(recipe.getCreatedAt())
+                .commentsCount(null)
                 .build();
     }
 
@@ -45,8 +43,6 @@ public class RecipeMapper {
                 .countOfServings(recipeDTO.getCountOfServings())
                 .author(author)
                 .category(category)
-                .totalRating(0)
-                .countOfRatings(0L)
                 .image(image)
                 .build();
     }

@@ -2,15 +2,15 @@ package com.group.collectionofrecipes.enums;
 
 public enum Unit {
 
-    GRAM("гр"),
-    KILOGRAM("кг"),
-    MILLILITER("мл"),
-    LITER("л"),
-    PIECE("шт"),
-    TEASPOON("ч. ложка"),
-    TABLESPOON("сл. ложка"),
-    CUP("стакан"),
-    PINCH("щепотка"),
+    GRAM("гр."),
+    KILOGRAM("кг."),
+    MILLILITER("мл."),
+    LITER("л."),
+    PIECE("шт."),
+    TEASPOON("ч. л."),
+    TABLESPOON("сл. л."),
+    CUP("ст."),
+    PINCH("щеп."),
     TO_TASTE("по вкусу");
 
 

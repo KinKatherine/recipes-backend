@@ -1,7 +1,10 @@
 package com.group.collectionofrecipes.entities;
 
+import com.group.collectionofrecipes.enums.Unit;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -13,6 +16,7 @@ import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Entity
@@ -22,6 +26,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class RecipeIngredientMapping {
 
     @Id
@@ -29,7 +34,10 @@ public class RecipeIngredientMapping {
     @Column(name = "id")
     private Long id;
 
-    //у одного рецепта много ингредиентов, один ингредиент входит во много рецептов
+    @Column(name = "unit")
+    @Enumerated(EnumType.STRING)
+    private Unit unit;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ingredient_id", nullable = false)
     private Ingredient ingredient;

@@ -1,9 +1,9 @@
 package com.group.collectionofrecipes.controllers;
 
 
-import com.group.collectionofrecipes.dto.ratingdto.CreateRatingDTO;
-import com.group.collectionofrecipes.dto.ratingdto.RatingDTO;
-import com.group.collectionofrecipes.services.RatingService;
+import com.group.collectionofrecipes.dto.commentdto.CommentDTO;
+import com.group.collectionofrecipes.dto.commentdto.CreateCommentDTO;
+import com.group.collectionofrecipes.services.CommentService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
@@ -23,59 +23,54 @@ import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.group.collectionofrecipes.utils.ApiConstants.FIELD_RATING;
+import static com.group.collectionofrecipes.utils.ApiConstants.FIELD_COMMENT;
+import static com.group.collectionofrecipes.utils.ApiConstants.FIELD_MESSAGE;
 import static com.group.collectionofrecipes.utils.ApiConstants.FIELD_STATUS;
 import static com.group.collectionofrecipes.utils.ApiConstants.FIELD_SUCCESS;
-import static com.group.collectionofrecipes.utils.ApiConstants.FIELD_MESSAGE;
 
-@Tag(name = "Ratings")
+@Tag(name = "Comments")
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-public class RatingController {
+public class CommentController {
 
-    private final RatingService ratingService;
+    private final CommentService commentService;
 
+    //update опционально
 
-    // СОЗДАНИЕ РЕЙТИНГА
-    @PostMapping("/api/v1/ratings")
-    public ResponseEntity<Map<String,Object>> createRating(@RequestBody @Valid CreateRatingDTO createRatingDTO,
-                                                           Principal principal) {
+    //СОЗДАНИЕ КОММЕНТАРИЯ
+    @PostMapping("/api/v1/comments")
+    public ResponseEntity<Map<String,Object>> createComment(@RequestBody @Valid CreateCommentDTO createCommentDTO,
+                                                            Principal principal) {
 
         if (principal == null) {
-            log.warn("Попытка создать рейтинг без авторизации.");
+            log.warn("Попытка создать комментарий без авторизации.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        RatingDTO newRatingDTO = ratingService.createRating(createRatingDTO, principal);
-        if (newRatingDTO == null) {
-            log.warn("Не удалось создать рейтинг: Пользователь или рецепт не найдены.");
+        CommentDTO newCommentDTO = commentService.createComment(createCommentDTO, principal);
+        if (newCommentDTO == null) {
+            log.warn("Не удалось создать комментарий: Пользователь или рецепт не найдены.");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
         Map<String,Object> response = new HashMap<>();
         response.put(FIELD_STATUS, FIELD_SUCCESS);
-        response.put(FIELD_RATING, newRatingDTO);
+        response.put(FIELD_COMMENT, newCommentDTO);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-
-    // УДАЛЕНИЕ РЕЙТИНГА
-    @DeleteMapping("/api/v1/ratings/{recipeId}")
-    public ResponseEntity<Map<String,Object>> deleteRating(@PathVariable Long recipeId,
-                                                           Principal principal) {
-
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+    // УДАЛЕНИЕ КОММЕНТАРИЯ
+    @DeleteMapping("/api/v1/comments/{commentId}")
+    public ResponseEntity<Map<String,Object>> deleteComment(@PathVariable Long commentId) {
 
         try {
-            Long deletedRatingId = ratingService.deleteRating(recipeId, principal);
+            Long deletedCommentId = commentService.deleteComment(commentId);
 
             Map<String,Object> response = new HashMap<>();
             response.put(FIELD_STATUS, FIELD_SUCCESS);
-            response.put("deletedRatingId", deletedRatingId);
+            response.put("deletedCommentId", deletedCommentId);
             return ResponseEntity.ok(response);
 
         } catch (EntityNotFoundException e) {
@@ -87,31 +82,25 @@ public class RatingController {
         }
     }
 
-
-    //ОБНОВЛЕНИЕ РЕЙТИНГА
-    @PutMapping("/api/v1/ratings/{recipeId}")
-    public ResponseEntity<Map<String,Object>> updateRating(@PathVariable Long recipeId,
-                                                           @RequestParam Integer newEstimation,
-                                                           Principal principal) {
-
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
+    // ОБНОВЛЕНИЕ КОММЕНТАРИЯ
+    @PutMapping("/api/v1/comments/{commentId}")
+    public ResponseEntity<Map<String,Object>> updateComment(@PathVariable Long commentId,
+                                                            @RequestParam String newText) {
         try {
-            RatingDTO updatedRatingDTO = ratingService.updateRating(recipeId, newEstimation, principal);
+            CommentDTO updatedCommentDTO = commentService.updateComment(commentId, newText);
 
             Map<String, Object> response = new HashMap<>();
             response.put(FIELD_STATUS, FIELD_SUCCESS);
-            response.put(FIELD_RATING, updatedRatingDTO);
+            response.put(FIELD_COMMENT, updatedCommentDTO);
             return ResponseEntity.ok(response);
 
         } catch (EntityNotFoundException e) {
-            log.warn("Обновление не удалось: {}", e.getMessage());
+            log.warn("Обновление комментария ID {} не удалось: {}", commentId, e.getMessage());
             Map<String,Object> errorResponse = new HashMap<>();
             errorResponse.put(FIELD_STATUS, "error");
             errorResponse.put(FIELD_MESSAGE, e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
     }
+
 }

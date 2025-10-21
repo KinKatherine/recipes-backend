@@ -15,6 +15,7 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
@@ -28,6 +29,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Recipe {
 
     @Id
@@ -53,13 +55,8 @@ public class Recipe {
     @Column(name = "servings_count")
     private Integer countOfServings;
 
-
-    @Column(name = "total_rating")
-    private Integer totalRating;
-
-    @Column(name = "count_of_ratings")
-    private Long countOfRatings;
-
+    @Column(name = "is_confirmed")
+    private Boolean isConfirmed;
 
     //много рецептов - один автор
     @ManyToOne(fetch = FetchType.LAZY)
@@ -82,11 +79,19 @@ public class Recipe {
     @Builder.Default
     private List<Favourite> favoriteBy = new ArrayList<>();
 
+
+    //один рецепт оценивается многими пользователями
+    //многие ко многим через ОЦЕНКА
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<Rating> ratings = new ArrayList<>();
+
     //один рецепт коммментирует много пользоватетлей
     //многие ко многим через КОММЕНТАРИИ
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @Builder.Default
     private List<Comment> comments = new ArrayList<>();
+
 
     //один рецепт имеет много ингредиентов
     //многие ко многим через РЕЦЕПТ_ИНГРЕДИЕНТ
@@ -98,6 +103,4 @@ public class Recipe {
     protected void init() {
         createdAt = LocalDateTime.now();
     }
-
-
 }
