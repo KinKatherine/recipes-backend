@@ -16,6 +16,12 @@ public class CreateIngredientDTO {
     @Size(min = 3, max = 50)
     private String name;
 
-    @NotBlank
+    @NotBlank()
+    private Double amount;
+
+    @NotBlank()
     private Unit unit;
+
+    private Boolean isConfirmed;
+
 }

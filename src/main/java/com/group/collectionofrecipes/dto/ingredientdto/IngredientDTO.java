@@ -1,17 +1,19 @@
 package com.group.collectionofrecipes.dto.ingredientdto;
 
-import com.group.collectionofrecipes.enums.Unit;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class IngredientDTO {
 
     private Long id;
     private String name;
-    private Unit unit;
+    private Double amount;
+    private String stringUnit;
 }

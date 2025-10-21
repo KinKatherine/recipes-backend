@@ -3,24 +3,29 @@ package com.group.collectionofrecipes.services;
 import com.group.collectionofrecipes.dto.ingredientdto.CreateIngredientDTO;
 import com.group.collectionofrecipes.dto.ingredientdto.IngredientDTO;
 import com.group.collectionofrecipes.entities.Ingredient;
+import com.group.collectionofrecipes.entities.RecipeIngredientMapping;
 import com.group.collectionofrecipes.mappers.IngredientMapper;
 import com.group.collectionofrecipes.repositories.IngredientRepository;
+import com.group.collectionofrecipes.repositories.RecipeIngredientRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 //ДОПИСАТЬ
-
+@Service
 @Slf4j
 @RequiredArgsConstructor
 public class IngredientService {
 
     private final IngredientRepository ingredientRepository;
     private final IngredientMapper ingredientMapper;
+    private final RecipeIngredientRepository recipeIngredientRepository;
 
     public List<IngredientDTO> findAllIngredients() {
         log.info("Запрос на получение всех игредиентов");
@@ -38,6 +43,7 @@ public class IngredientService {
 
         try {
             Ingredient ingredient = ingredientMapper.toIngredientEntity(createIngredientDTO);
+            ingredient.setIsConfirmed(false);
             Ingredient savedIngredient = ingredientRepository.save(ingredient);
             log.info("Ингердиент успешно создан: ID={}, Name={}", savedIngredient.getId(), savedIngredient.getName());
             return ingredientMapper.toIngredientDto(savedIngredient);
@@ -49,5 +55,6 @@ public class IngredientService {
             throw e;
         }
     }
+
 
 }
