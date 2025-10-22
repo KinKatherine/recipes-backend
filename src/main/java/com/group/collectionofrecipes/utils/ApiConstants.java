@@ -11,7 +11,6 @@ public final class ApiConstants {
     public static final String FIELD_MESSAGE = "message";
     public static final String FIELD_ERROR = "error";
 
-    public static final String FIELD_RECIPE = "recipe";
     public static final String FIELD_RATING = "rating";
     public static final String FIELD_COMMENT = "comment";
 
