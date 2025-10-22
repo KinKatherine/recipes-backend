@@ -3,7 +3,6 @@ package com.group.collectionofrecipes.services;
 import com.group.collectionofrecipes.dto.ingredientdto.CreateIngredientDTO;
 import com.group.collectionofrecipes.dto.ingredientdto.IngredientDTO;
 import com.group.collectionofrecipes.entities.Ingredient;
-import com.group.collectionofrecipes.entities.RecipeIngredientMapping;
 import com.group.collectionofrecipes.mappers.IngredientMapper;
 import com.group.collectionofrecipes.repositories.IngredientRepository;
 import com.group.collectionofrecipes.repositories.RecipeIngredientRepository;
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 //ДОПИСАТЬ

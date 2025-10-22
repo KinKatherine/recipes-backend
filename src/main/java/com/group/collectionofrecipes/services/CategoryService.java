@@ -2,9 +2,7 @@ package com.group.collectionofrecipes.services;
 
 import com.group.collectionofrecipes.dto.categorydto.CategoryDTO;
 import com.group.collectionofrecipes.dto.categorydto.CreateCategoryDTO;
-import com.group.collectionofrecipes.dto.recipedto.RecipeDTO;
 import com.group.collectionofrecipes.entities.Category;
-import com.group.collectionofrecipes.entities.Recipe;
 import com.group.collectionofrecipes.mappers.CategoryMapper;
 import com.group.collectionofrecipes.mappers.RecipeMapper;
 import com.group.collectionofrecipes.repositories.CategoryRepository;
