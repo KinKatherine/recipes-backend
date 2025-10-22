@@ -3,6 +3,7 @@ package com.group.collectionofrecipes.controllers;
 
 import com.group.collectionofrecipes.dto.ratingdto.CreateRatingDTO;
 import com.group.collectionofrecipes.dto.ratingdto.RatingDTO;
+import com.group.collectionofrecipes.dto.responsedto.ApiResponse;
 import com.group.collectionofrecipes.services.RatingService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
@@ -39,79 +40,60 @@ public class RatingController {
 
     // СОЗДАНИЕ РЕЙТИНГА
     @PostMapping("/api/v1/ratings")
-    public ResponseEntity<Map<String,Object>> createRating(@RequestBody @Valid CreateRatingDTO createRatingDTO,
-                                                           Principal principal) {
+    public ApiResponse<RatingDTO> createRating(@RequestBody @Valid CreateRatingDTO createRatingDTO,
+                                    Principal principal) {
 
         if (principal == null) {
             log.warn("Попытка создать рейтинг без авторизации.");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return ApiResponse.unSuccess(HttpStatus.UNAUTHORIZED);
         }
 
         RatingDTO newRatingDTO = ratingService.createRating(createRatingDTO, principal);
         if (newRatingDTO == null) {
             log.warn("Не удалось создать рейтинг: Пользователь или рецепт не найдены.");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ApiResponse.unSuccess(HttpStatus.NOT_FOUND);
         }
-
-        Map<String,Object> response = new HashMap<>();
-        response.put(FIELD_STATUS, FIELD_SUCCESS);
-        response.put(FIELD_RATING, newRatingDTO);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ApiResponse.success(newRatingDTO);
     }
 
 
     // УДАЛЕНИЕ РЕЙТИНГА
     @DeleteMapping("/api/v1/ratings/{recipeId}")
-    public ResponseEntity<Map<String,Object>> deleteRating(@PathVariable Long recipeId,
+    public ApiResponse<RatingDTO> deleteRating(@PathVariable Long recipeId,
                                                            Principal principal) {
 
         if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return ApiResponse.unSuccess(HttpStatus.UNAUTHORIZED);
         }
 
         try {
-            Long deletedRatingId = ratingService.deleteRating(recipeId, principal);
-
-            Map<String,Object> response = new HashMap<>();
-            response.put(FIELD_STATUS, FIELD_SUCCESS);
-            response.put("deletedRatingId", deletedRatingId);
-            return ResponseEntity.ok(response);
+            RatingDTO deletedRating = ratingService.deleteRating(recipeId, principal);
+            return ApiResponse.success(deletedRating);
 
         } catch (EntityNotFoundException e) {
             log.warn("Удаление не удалось: {}", e.getMessage());
-            Map<String,Object> errorResponse = new HashMap<>();
-            errorResponse.put(FIELD_STATUS, "error");
-            errorResponse.put(FIELD_MESSAGE, e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+            return ApiResponse.unSuccess(HttpStatus.NOT_FOUND);
         }
     }
 
 
     //ОБНОВЛЕНИЕ РЕЙТИНГА
     @PutMapping("/api/v1/ratings/{recipeId}")
-    public ResponseEntity<Map<String,Object>> updateRating(@PathVariable Long recipeId,
+    public ApiResponse<RatingDTO> updateRating(@PathVariable Long recipeId,
                                                            @RequestParam Integer newEstimation,
                                                            Principal principal) {
 
         if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return ApiResponse.unSuccess(HttpStatus.UNAUTHORIZED);
         }
 
         try {
             RatingDTO updatedRatingDTO = ratingService.updateRating(recipeId, newEstimation, principal);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put(FIELD_STATUS, FIELD_SUCCESS);
-            response.put(FIELD_RATING, updatedRatingDTO);
-            return ResponseEntity.ok(response);
+            return ApiResponse.success(updatedRatingDTO);
 
         } catch (EntityNotFoundException e) {
             log.warn("Обновление не удалось: {}", e.getMessage());
-            Map<String,Object> errorResponse = new HashMap<>();
-            errorResponse.put(FIELD_STATUS, "error");
-            errorResponse.put(FIELD_MESSAGE, e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+            return ApiResponse.unSuccess(HttpStatus.NOT_FOUND);
         }
     }
 }

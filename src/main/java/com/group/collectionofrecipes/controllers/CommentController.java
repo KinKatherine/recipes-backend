@@ -3,6 +3,7 @@ package com.group.collectionofrecipes.controllers;
 
 import com.group.collectionofrecipes.dto.commentdto.CommentDTO;
 import com.group.collectionofrecipes.dto.commentdto.CreateCommentDTO;
+import com.group.collectionofrecipes.dto.responsedto.ApiResponse;
 import com.group.collectionofrecipes.services.CommentService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
@@ -40,66 +41,48 @@ public class CommentController {
 
     //СОЗДАНИЕ КОММЕНТАРИЯ
     @PostMapping("/api/v1/comments")
-    public ResponseEntity<Map<String,Object>> createComment(@RequestBody @Valid CreateCommentDTO createCommentDTO,
-                                                            Principal principal) {
+    public ApiResponse<CommentDTO> createComment(@RequestBody @Valid CreateCommentDTO createCommentDTO,
+                                     Principal principal) {
 
         if (principal == null) {
             log.warn("Попытка создать комментарий без авторизации.");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return ApiResponse.unSuccess(HttpStatus.UNAUTHORIZED);
         }
 
         CommentDTO newCommentDTO = commentService.createComment(createCommentDTO, principal);
         if (newCommentDTO == null) {
             log.warn("Не удалось создать комментарий: Пользователь или рецепт не найдены.");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ApiResponse.unSuccess(HttpStatus.NOT_FOUND);
         }
 
-        Map<String,Object> response = new HashMap<>();
-        response.put(FIELD_STATUS, FIELD_SUCCESS);
-        response.put(FIELD_COMMENT, newCommentDTO);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ApiResponse.success(newCommentDTO);
     }
 
     // УДАЛЕНИЕ КОММЕНТАРИЯ
     @DeleteMapping("/api/v1/comments/{commentId}")
-    public ResponseEntity<Map<String,Object>> deleteComment(@PathVariable Long commentId) {
+    public ApiResponse<CommentDTO> deleteComment(@PathVariable Long commentId) {
 
         try {
-            Long deletedCommentId = commentService.deleteComment(commentId);
-
-            Map<String,Object> response = new HashMap<>();
-            response.put(FIELD_STATUS, FIELD_SUCCESS);
-            response.put("deletedCommentId", deletedCommentId);
-            return ResponseEntity.ok(response);
+            CommentDTO deletedComment = commentService.deleteComment(commentId);
+            return ApiResponse.success(deletedComment);
 
         } catch (EntityNotFoundException e) {
             log.warn("Удаление не удалось: {}", e.getMessage());
-            Map<String,Object> errorResponse = new HashMap<>();
-            errorResponse.put(FIELD_STATUS, "error");
-            errorResponse.put(FIELD_MESSAGE, e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+            return ApiResponse.unSuccess(HttpStatus.NOT_FOUND);
         }
     }
 
     // ОБНОВЛЕНИЕ КОММЕНТАРИЯ
     @PutMapping("/api/v1/comments/{commentId}")
-    public ResponseEntity<Map<String,Object>> updateComment(@PathVariable Long commentId,
+    public ApiResponse<CommentDTO> updateComment(@PathVariable Long commentId,
                                                             @RequestParam String newText) {
         try {
             CommentDTO updatedCommentDTO = commentService.updateComment(commentId, newText);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put(FIELD_STATUS, FIELD_SUCCESS);
-            response.put(FIELD_COMMENT, updatedCommentDTO);
-            return ResponseEntity.ok(response);
+            return ApiResponse.success(updatedCommentDTO);
 
         } catch (EntityNotFoundException e) {
             log.warn("Обновление комментария ID {} не удалось: {}", commentId, e.getMessage());
-            Map<String,Object> errorResponse = new HashMap<>();
-            errorResponse.put(FIELD_STATUS, "error");
-            errorResponse.put(FIELD_MESSAGE, e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+            return ApiResponse.unSuccess(HttpStatus.NOT_FOUND);
         }
     }
 
