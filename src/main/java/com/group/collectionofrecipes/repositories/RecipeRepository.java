@@ -1,5 +1,6 @@
 package com.group.collectionofrecipes.repositories;
 
+import com.group.collectionofrecipes.dto.ratingdto.RatingStatsProjection;
 import com.group.collectionofrecipes.dto.ratingdto.RecipeRatingProjection;
 import com.group.collectionofrecipes.entities.Comment;
 import com.group.collectionofrecipes.entities.Recipe;
@@ -26,8 +27,9 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
             "WHERE r.id = :id AND r.isConfirmed = true")
     Optional<Recipe> findByIdWithMainDetails(@Param("id") Long id); // возвращаем рецепт с категорией и автором
 
-    @Query("SELECT COALESCE(AVG(r.estimation), 0) FROM Rating r WHERE r.recipe.id = :recipeId")
-    Integer calculateAverageRating(Long recipeId); // вычисляем рейтинг рецепта по id
+    @Query("SELECT COALESCE(AVG(r.estimation), 0) as averageRating, COUNT(r.estimation) as count " +
+            "FROM Rating r WHERE r.recipe.id = :recipeId")
+    RatingStatsProjection calculateRatingStats(Long recipeId);
 
     @Query("SELECT c FROM Comment c JOIN FETCH c.user WHERE c.recipe.id = :recipeId ORDER BY c.createdAt DESC")
     List<Comment> loadCommentsByRecipeId(@Param("recipeId") Long recipeId); //загружаем комментарии рецепта по id
@@ -56,7 +58,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
     List<RecipeRatingProjection> findAverageRatingsForRecipes(@Param("recipeIds") List<Long> recipeIds);
 
 
-    //ДЛЯ ИЗБРАННЫХ РЕЦЕПТОВ ПОЛЬЗООВАТЕЛЯ
+    //ДЛЯ ИЗБРАННЫХ РЕЦЕПТОВ ПОЛЬЗОВАТЕЛЯ
     @EntityGraph(attributePaths = {"author", "category"})
     @Query("SELECT r FROM Recipe r " +
             "JOIN r.favoriteBy fb " +
@@ -81,7 +83,19 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
             "WHERE r.isConfirmed = false ")
     Page<Recipe> findUnconfirmedRecipes(Pageable pageable);
 
+    //ПОИСК РЕЦЕПТОВ ОПРЕДЕЛЕННОЙ КАТЕГОРИИ
+    @Query("SELECT r FROM Recipe r " +
+            "JOIN FETCH r.author " +
+            "JOIN FETCH r.category " +
+            "WHERE r.category_id = :authorId")
+    Page<Recipe> findRecipesByCategoryId(Long categoryId, Pageable pageable);
 
 
-    List<Recipe> findRecipesByCategoryId(Long id);
+    //СТРАНИЦА ПОЛУЛЯРНОЕ ГЛАВНОЙ СТРАНИЦЫ
+    @Query("SELECT r FROM Recipe r " +
+            "LEFT JOIN r.ratings rat " +
+            "WHERE r.isConfirmed = true " +
+            "GROUP BY r " +
+            "ORDER BY COALESCE(AVG(rat.estimation), 0) DESC, COUNT(rat.id) DESC")
+    List<Recipe> findTop10ByRatingAndVotesCount();
 }

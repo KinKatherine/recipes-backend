@@ -24,6 +24,8 @@ public class RecipeMapper {
                 .image(recipe.getImage())
                 .countOfServings(recipe.getCountOfServings())
                 .averageRating(0)
+                .countOfRatings(0L)
+                 .userRating(null)
                 .authorId(recipe.getAuthor().getId())
                 .authorUsername(recipe.getAuthor().getUsername())
                 .categoryId(recipe.getCategory().getId())

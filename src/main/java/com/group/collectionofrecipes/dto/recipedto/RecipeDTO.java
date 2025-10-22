@@ -24,14 +24,15 @@ public class RecipeDTO {
     private String image;
     private Integer countOfServings;
     private Integer averageRating;
+    private Long countOfRatings;
     private Long authorId;
     private String authorUsername;
     private Long categoryId;
     private String categoryName;
     private Integer commentsCount;
     private LocalDateTime createdAt;
+    private Integer userRating;
     private List<CommentDTO> commentDTOs;
     private List<IngredientDTO> ingredientDTOs;
     private Boolean isFavourite;
-    private Boolean isAppreciated;
 }
