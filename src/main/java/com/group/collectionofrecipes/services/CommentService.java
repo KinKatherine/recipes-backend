@@ -56,13 +56,13 @@ public class CommentService {
     }
 
     @Transactional
-    public Long deleteComment(Long commentId) {
+    public CommentDTO deleteComment(Long commentId) {
 
         try {
             Comment comment = commentRepository.findById(commentId).orElseThrow(() -> new EntityNotFoundException(ERROR_COMMENT_NOT_FOUND + commentId));
             commentRepository.delete(comment);
             log.info("Комментарий ID {} успешно удален админисиратором (или по ID) для рецепта ID {}.", comment.getId(), comment.getRecipe().getId());
-            return commentId;
+            return commentMapper.toCommentDto(comment);
 
         } catch (EntityNotFoundException e) {
             log.error("Не удалось удалить комментарий с id {}. Ошибка: {}", commentId,e.getMessage(), e);

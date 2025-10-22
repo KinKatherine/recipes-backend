@@ -114,23 +114,4 @@ public class CategoryService {
             throw e;
         }
     }
-
-    public List<RecipeDTO> getRecipesByCategoryId(Long id) {
-        log.info("Запрос на получение рецептов для категории с ID: {}", id);
-
-        categoryRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.error("Категория с ID {} не найдена при запросе рецептов", id);
-                    return new EntityNotFoundException("Category not found by id: " + id);
-                });
-
-        List<Recipe> recipes = recipeRepository.findRecipesByCategoryId(id);
-        List<RecipeDTO> recipeDTOList = new ArrayList<>();
-        for (Recipe i : recipes) {
-            recipeDTOList.add(recipeMapper.toRecipeDto(i));
-        }
-
-        log.info("Для категории с ID {} найдено {} рецептов", id, recipeDTOList.size());
-        return recipeDTOList;
-    }
 }

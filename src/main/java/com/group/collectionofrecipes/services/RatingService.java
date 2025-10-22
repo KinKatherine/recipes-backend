@@ -55,7 +55,7 @@ public class RatingService{
     }
 
     @Transactional
-    public Long deleteRating(Long recipeId, Principal principal) {
+    public RatingDTO deleteRating(Long recipeId, Principal principal) {
 
         String username = principal.getName();
 
@@ -71,7 +71,7 @@ public class RatingService{
 
             log.info("Рейтинг ID {} успешно удален пользователем {} для рецепта ID {}.", ratingId, username, recipeId);
 
-            return ratingId;
+            return ratingMapper.toRatingDto(ratingToDelete);
 
         } catch (EntityNotFoundException e) {
             log.error("Не удалось удалить рейтинг для рецепта ID {}. Ошибка: {}", recipeId, e.getMessage(), e);

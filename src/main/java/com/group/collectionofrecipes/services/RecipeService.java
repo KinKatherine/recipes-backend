@@ -2,10 +2,12 @@ package com.group.collectionofrecipes.services;
 
 import com.group.collectionofrecipes.dto.commentdto.CommentDTO;
 import com.group.collectionofrecipes.dto.ingredientdto.IngredientDTO;
+import com.group.collectionofrecipes.dto.ratingdto.RatingStatsProjection;
 import com.group.collectionofrecipes.dto.ratingdto.RecipeRatingProjection;
 import com.group.collectionofrecipes.dto.recipedto.CreateRecipeDTO;
 import com.group.collectionofrecipes.dto.recipedto.RecipeDTO;
 import com.group.collectionofrecipes.entities.Category;
+import com.group.collectionofrecipes.entities.Rating;
 import com.group.collectionofrecipes.entities.Recipe;
 import com.group.collectionofrecipes.entities.User;
 import com.group.collectionofrecipes.exceptions.SaveFileException;
@@ -132,13 +134,22 @@ public class RecipeService {
         log.info("Успешно загружены комментарии" );
 
         RecipeDTO recipeDTO = recipeMapper.toRecipeDto(recipe);
-        recipeDTO.setAverageRating(recipeRepository.calculateAverageRating(id));
+        RatingStatsProjection statsProjection = recipeRepository.calculateRatingStats(id);
+        recipeDTO.setAverageRating(statsProjection.getAverageRating());
+        recipeDTO.setCountOfRatings(statsProjection.getCount());
         recipeDTO.setIngredientDTOs(ingredientDTOS);
         recipeDTO.setCommentDTOs(commentDTOS);
 
         recipeDTO.setCommentsCount(commentDTOS.size());
-        recipeDTO.setIsAppreciated(
-                principal != null && ratingRepository.existsByRecipeIdAndUserUsername(id,principal.getName()));
+
+        if(principal!=null){
+            boolean isAppreciated = ratingRepository.existsByRecipeIdAndUserUsername(id, principal.getName());
+            if (!isAppreciated) recipeDTO.setUserRating(0);
+            else {
+                Rating rating = ratingRepository.findByRecipeIdAndUsername(id,principal.getName()).orElseThrow();
+                recipeDTO.setUserRating(rating.getEstimation());
+            }
+        }
 
         recipeDTO.setIsFavourite(
                 principal != null && favouriteRepository.existsByRecipeIdAndUserUsername(recipe.getId(), principal.getName())
@@ -178,6 +189,43 @@ public class RecipeService {
         });
     }
 
+
+    //СТРАНИЦА АДМИНА НЕПОДТВЕРЖДЕННЫЕ РЕЦЕПТЫ
+    //DONE
+    @Transactional(readOnly = true)
+    public Page<RecipeDTO> getUnconfirmedRecipes(int pageNumber){
+        Pageable pageRequest = PageRequest.of(
+                pageNumber,
+                FIXED_PAGE_SIZE,
+                Sort.by("createdAt").descending()
+        );
+
+        Page<Recipe> unconfirmedRecipesPage =
+                recipeRepository.findUnconfirmedRecipes(pageRequest);
+
+        return unconfirmedRecipesPage.map(recipe -> {
+            RecipeDTO recipeDTO = recipeMapper.toRecipeDto(recipe);
+            recipeDTO.setIsFavourite(false);
+            recipeDTO.setAverageRating(0);
+            return recipeDTO;
+        });
+    }
+
+    //ОДОБРЕНИЕ РЕЦЕПТА АДМИНОМ
+    public void confirmRecipe(Long id) {
+        log.info("Запрос подтверждения рецепта  с id: {}", id);
+        Recipe recipe = recipeRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.error("Рецепт с id {} не найден",id);
+                    return new EntityNotFoundException("Неверный id рецепта");
+                });
+
+        recipe.setIsConfirmed(true);
+        recipeRepository.save(recipe);
+        log.info("Рецепт с id {} успешно подтвержден", id);
+    }
+
+
     //СТРАНИЦА ПОЛЬЗОВАТЕЛЯ МОИ ПОДТВЕРЖДЕННЫЕ РЕЦЕПТЫ
     //DONE
     @Transactional(readOnly = true)
@@ -200,10 +248,7 @@ public class RecipeService {
 
         return userConfirmedRecipesPage.map(recipe -> {
             RecipeDTO recipeDTO = recipeMapper.toRecipeDto(recipe);
-            boolean isFavourite = favouriteRepository.existsByRecipeIdAndUserUsername(
-                    recipe.getId(),
-                    username
-            );
+            boolean isFavourite = favouriteRepository.existsByRecipeIdAndUserUsername(recipe.getId(),username);
             recipeDTO.setIsFavourite(isFavourite);
             Double rawRating = ratingMap.getOrDefault(recipe.getId(), 0.0);
             recipeDTO.setAverageRating((int) Math.round(rawRating));
@@ -213,42 +258,35 @@ public class RecipeService {
 
     }
 
+    //ПОЛУЧЕНИЕ РЕЦЕПТО ОПРЕДЕЛЁННОЙ КАТЕГОРИИ
+    public Page<RecipeDTO> getRecipesByCategoryId(Long categoryId,Principal principal, int pageNumber) {
+        log.info("Запрос на получение рецептов для категории с ID: {}", categoryId);
 
-    //СТРАНИЦА АДМИНА НЕПОДТВЕРЖДЕННЫЕ РЕЦЕПТЫ
-    //DONE
-    @Transactional(readOnly = true)
-    public Page<RecipeDTO> getUnconfirmedRecipes(int pageNumber){
         Pageable pageRequest = PageRequest.of(
                 pageNumber,
-                FIXED_PAGE_SIZE,
-                Sort.by("createdAt").descending()
+                FIXED_PAGE_SIZE
         );
 
-        Page<Recipe> unconfirmedRecipesPage =
-                recipeRepository.findUnconfirmedRecipes(pageRequest);
+        Page<Recipe> recipesCategoryPage =  recipeRepository.findRecipesByCategoryId(categoryId,pageRequest);
+        List<Long> recipeIds = recipesCategoryPage.getContent().stream().map(Recipe::getId).toList();
+        Map<Long, Double> ratingMap = getAverageRatingsMap(recipeRepository.findAverageRatingsForRecipes(recipeIds));
 
-        return unconfirmedRecipesPage.map(recipe -> {
+
+        return recipesCategoryPage.map(recipe -> {
             RecipeDTO recipeDTO = recipeMapper.toRecipeDto(recipe);
-            recipeDTO.setIsFavourite(false);
-            recipeDTO.setAverageRating(0);
+            boolean isFavourite;
+            if (principal==null) isFavourite = false;
+            else {
+                isFavourite = favouriteRepository.existsByRecipeIdAndUserUsername(recipe.getId(), principal.getName());
+            }
+            recipeDTO.setIsFavourite(isFavourite);
+            Double rawRating = ratingMap.getOrDefault(recipe.getId(), 0.0);
+            recipeDTO.setAverageRating((int) Math.round(rawRating));
 
             return recipeDTO;
         });
     }
 
-    //ОДОБРЕНИЕ РЕЦЕПТА АДМИНОМ
-    public void confirmRecipe(Long id) {
-        log.info("Запрос подтверждения рецепта  с id: {}", id);
-        Recipe recipe = recipeRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.error("Рецепт с id {} не найден",id);
-                    return new EntityNotFoundException("Неверный id рецепта");
-                });
-
-        recipe.setIsConfirmed(true);
-        recipeRepository.save(recipe);
-        log.info("Рецепт с id {} успешно подтвержден", id);
-    }
 
     //УТИЛЬНЫЙ МЕТОД
     private Map<Long, Double> getAverageRatingsMap( List<RecipeRatingProjection> ratingList) {
