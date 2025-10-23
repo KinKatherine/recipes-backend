@@ -19,6 +19,7 @@ public final class ApiConstants {
     //пользователь
     public static final String AUTH_LOGIN_URI = "/api/v1/auth/login";
     public static final String AUTH_REGISTER_URI = "/api/v1/auth/register";
+    public static final String EMAIL_VERIFICATION_URI ="/api/v1/verify";
 
     //категории
     public static final String CATEGORIES_URI = "/api/v1/categories";

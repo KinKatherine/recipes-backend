@@ -30,6 +30,7 @@ import static com.group.collectionofrecipes.utils.ApiConstants.CATEGORIES_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.CATEGORY_RECIPES_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.COMMENTS_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.COMMENT_ID_URI;
+import static com.group.collectionofrecipes.utils.ApiConstants.EMAIL_VERIFICATION_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.RECIPES_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.RECIPES_USER_ADDED_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.RECIPES_USER_FAVOURITES_URI;
@@ -54,6 +55,7 @@ public class SecurityConfig {
                         //пользователь
                         .requestMatchers(HttpMethod.POST,AUTH_REGISTER_URI).permitAll()
                         .requestMatchers(HttpMethod.POST,AUTH_LOGIN_URI).permitAll()
+                        .requestMatchers(HttpMethod.PUT, EMAIL_VERIFICATION_URI).permitAll()
 
                         //категории
                         .requestMatchers(HttpMethod.GET, CATEGORIES_URI).permitAll()
