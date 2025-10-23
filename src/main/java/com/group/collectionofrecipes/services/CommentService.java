@@ -33,7 +33,7 @@ public class CommentService {
 
     @Transactional
     public CommentDTO createComment(CreateCommentDTO createCommentDTO, Principal principal) {
-
+        log.info("Запрос на создание комментария для рецепта с id {}",createCommentDTO.getRecipeId());
         String username = principal.getName();
         Long recipeId = createCommentDTO.getRecipeId();
 
@@ -61,6 +61,7 @@ public class CommentService {
     @Transactional
     public CommentDTO deleteComment(Long commentId) {
 
+        log.info("Запрос  админа на удаление комментария с id {}",commentId);
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> {
                     log.warn("Комментарий ID {} не найден для удаления.", commentId);
@@ -77,6 +78,7 @@ public class CommentService {
     @Transactional
     public CommentDTO updateComment(Long commentId, String newText, Principal principal) {
 
+        log.info("Запрос пользователя {} на обновление комментария с id {}",principal.getName(),commentId);
         Comment commentToUpdate = commentRepository.findById(commentId)
                 .orElseThrow(() -> {
                     log.warn("Комментарий ID {} не найден для обновления.", commentId);

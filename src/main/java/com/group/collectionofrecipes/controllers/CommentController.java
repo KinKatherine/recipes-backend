@@ -43,35 +43,39 @@ public class CommentController {
     public ApiResponse<CommentDTO> createComment(@RequestBody @Valid CreateCommentDTO createCommentDTO,
                                                  Principal principal) {
 
+        log.info("POST /api/v1/comments");
         if (principal == null) {
             log.warn("Попытка создать комментарий без авторизации.");
             throw new AccessDeniedException("Недостаточно прав");
         }
         CommentDTO newCommentDTO = commentService.createComment(createCommentDTO, principal);
-
+        log.info("POST /api/v1/comments - комментарий для рецепта с id {} успешно добавлен",createCommentDTO.getRecipeId());
         return ApiResponse.success(newCommentDTO);
     }
 
     //УДАЛЕНИЕ КОММЕНТАРИЯ
-    //@PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/api/v1/comments/{commentId}")
     public ApiResponse<CommentDTO> deleteComment(@PathVariable Long commentId) {
 
+        log.info("DELETE /api/v1/comments/{}",commentId);
         CommentDTO deletedComment = commentService.deleteComment(commentId);
+        log.info("DELETE /api/v1/comments/{} - комментарий с id {} успешно удален",commentId,commentId);
         return ApiResponse.success(deletedComment);
     }
 
    //ОБНОВЛЕНИЕ КОММЕНТАРИЯ
+    //не надо
     @PutMapping("/api/v1/comments/{commentId}")
     public ApiResponse<CommentDTO> updateComment(@PathVariable Long commentId,
                                                  @RequestParam String newText,
                                                  Principal principal) {
-
+        log.info("PUT /api/v1/comments/{}",commentId);
         if (principal == null) {
             log.warn("Попытка обновить комментарий без авторизации.");
             throw new AccessDeniedException("Недостаточно прав");
         }
         CommentDTO updatedCommentDTO = commentService.updateComment(commentId, newText, principal);
+        log.info("PUT /api/v1/comments/{} - текст комментария с id {} изменен на {}",commentId,commentId,newText);
         return ApiResponse.success(updatedCommentDTO);
     }
 

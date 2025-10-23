@@ -29,6 +29,7 @@ import static com.group.collectionofrecipes.utils.ApiConstants.AUTH_REGISTER_URI
 import static com.group.collectionofrecipes.utils.ApiConstants.CATEGORIES_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.CATEGORY_RECIPES_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.COMMENTS_URI;
+import static com.group.collectionofrecipes.utils.ApiConstants.COMMENT_ID_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.RECIPES_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.RECIPES_USER_ADDED_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.RECIPES_USER_FAVOURITES_URI;
@@ -58,6 +59,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, CATEGORIES_URI).permitAll()
                         .requestMatchers(HttpMethod.GET, CATEGORY_RECIPES_URI).permitAll()
 
+                        //комментарии
+                        .requestMatchers(HttpMethod.POST, COMMENTS_URI).authenticated()
+                        .requestMatchers(HttpMethod.DELETE,COMMENT_ID_URI).hasAuthority(UserRole.ADMIN.name())
+                        .requestMatchers(HttpMethod.PUT,COMMENT_ID_URI).hasAuthority(UserRole.ADMIN.name()) //не используется
+
                         .requestMatchers(HttpMethod.POST, RECIPES_URI).authenticated()
                         .requestMatchers(HttpMethod.DELETE, RECIPE_ID_URI).hasRole(UserRole.ADMIN.name())
                         .requestMatchers(HttpMethod.PUT, RECIPES_URI + "/**").hasRole(UserRole.ADMIN.name())
@@ -66,7 +72,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, RECIPES_USER_ADDED_URI).authenticated()
                         .requestMatchers(HttpMethod.GET, RECIPE_ID_URI).hasAnyAuthority("ROLE_ANONYMOUS", UserRole.USER.name(),UserRole.ADMIN.name())
 
-                        .requestMatchers(HttpMethod.DELETE, COMMENTS_URI).hasAuthority(UserRole.ADMIN.name())
 
                         .anyRequest().permitAll()
                 )

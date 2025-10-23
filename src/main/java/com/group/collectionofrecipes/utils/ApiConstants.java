@@ -24,12 +24,15 @@ public final class ApiConstants {
     public static final String CATEGORIES_URI = "/api/v1/categories";
     public static final String CATEGORY_RECIPES_URI = "/api/v1/categories/{categoryId}/recipes";
 
+    //комментарии
+    public static final String COMMENTS_URI = "/api/v1/comments";
+    public static final String COMMENT_ID_URI="/api/v1/comments/{commentId}";
+
     public static final String RECIPES_URI = "/api/v1/recipes";
     public static final String RECIPE_ID_URI = "/api/v1/recipes/{id}";
     public static final String RECIPES_USER_FAVOURITES_URI = "/api/v1/recipes/{id}";
     public static final String RECIPES_USER_ADDED_URI = "/api/v1/recipes/my-recipes";
 
-    public static final String COMMENTS_URI = "/api/v1/comments/{commentId}";
 
     public static final Integer FIXED_PAGE_SIZE = 8;
 }
