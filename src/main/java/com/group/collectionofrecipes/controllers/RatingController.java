@@ -11,7 +11,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -20,6 +23,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.group.collectionofrecipes.utils.ApiConstants.FIELD_ERROR;
+import static com.group.collectionofrecipes.utils.ApiConstants.FIELD_MESSAGE;
+import static com.group.collectionofrecipes.utils.ApiConstants.FIELD_STATUS;
 
 @Tag(name = "Ratings")
 @Slf4j
@@ -29,22 +38,15 @@ public class RatingController {
 
     private final RatingService ratingService;
 
-
     // СОЗДАНИЕ РЕЙТИНГА
     @PostMapping("/api/v1/ratings")
     public ApiResponse<RatingDTO> createRating(@RequestBody @Valid CreateRatingDTO createRatingDTO,
-                                    Principal principal) {
-
+                                               Principal principal) {
         if (principal == null) {
-            log.warn("Попытка создать рейтинг без авторизации.");
-            return ApiResponse.unSuccess(HttpStatus.UNAUTHORIZED);
+            log.warn("Попытка добавить рейтинг без авторизации.");
+            throw new AccessDeniedException("Недостаточно прав");
         }
-
         RatingDTO newRatingDTO = ratingService.createRating(createRatingDTO, principal);
-        if (newRatingDTO == null) {
-            log.warn("Не удалось создать рейтинг: Пользователь или рецепт не найдены.");
-            return ApiResponse.unSuccess(HttpStatus.NOT_FOUND);
-        }
         return ApiResponse.success(newRatingDTO);
     }
 
@@ -52,40 +54,76 @@ public class RatingController {
     // УДАЛЕНИЕ РЕЙТИНГА
     @DeleteMapping("/api/v1/ratings/{recipeId}")
     public ApiResponse<RatingDTO> deleteRating(@PathVariable Long recipeId,
-                                                           Principal principal) {
+                                               Principal principal) {
 
         if (principal == null) {
-            return ApiResponse.unSuccess(HttpStatus.UNAUTHORIZED);
+            log.warn("Попытка удалить рейтинг без авторизации.");
+            throw new AccessDeniedException("Недостаточно прав");
         }
-
-        try {
-            RatingDTO deletedRating = ratingService.deleteRating(recipeId, principal);
-            return ApiResponse.success(deletedRating);
-
-        } catch (EntityNotFoundException e) {
-            log.warn("Удаление не удалось: {}", e.getMessage());
-            return ApiResponse.unSuccess(HttpStatus.NOT_FOUND);
-        }
+        RatingDTO deletedRating = ratingService.deleteRating(recipeId, principal);
+        return ApiResponse.success(deletedRating);
     }
 
 
     //ОБНОВЛЕНИЕ РЕЙТИНГА
     @PutMapping("/api/v1/ratings/{recipeId}")
     public ApiResponse<RatingDTO> updateRating(@PathVariable Long recipeId,
-                                                           @RequestParam Integer newEstimation,
-                                                           Principal principal) {
+                                               @RequestParam Integer newEstimation,
+                                               Principal principal) {
+
+        if (newEstimation <= 0 || newEstimation > 5) {
+            throw new IllegalArgumentException("Рейтинг должен быть от 1 до 5");
+        }
 
         if (principal == null) {
-            return ApiResponse.unSuccess(HttpStatus.UNAUTHORIZED);
+            log.warn("Попытка обновить рейтинг без авторизации.");
+            throw new AccessDeniedException("Недостаточно прав");
         }
+        RatingDTO updatedRatingDTO = ratingService.updateRating(recipeId, newEstimation, principal);
+        return ApiResponse.success(updatedRatingDTO);
+    }
 
-        try {
-            RatingDTO updatedRatingDTO = ratingService.updateRating(recipeId, newEstimation, principal);
-            return ApiResponse.success(updatedRatingDTO);
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalState(IllegalStateException e) {
+        log.error("Обработка исключения IllegalStateException: {} ", e.getMessage());
 
-        } catch (EntityNotFoundException e) {
-            log.warn("Обновление не удалось: {}", e.getMessage());
-            return ApiResponse.unSuccess(HttpStatus.NOT_FOUND);
-        }
+        Map<String, Object> response = new HashMap<>();
+        response.put(FIELD_STATUS, FIELD_ERROR);
+        response.put(FIELD_MESSAGE, e.getMessage());
+        log.warn("Возврат ответа 409 Conflict: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleEntityNotFound(EntityNotFoundException e) {
+        log.error("Обработка исключения EntityNotFoundException: {} ", e.getMessage());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put(FIELD_STATUS, FIELD_ERROR);
+        response.put(FIELD_MESSAGE, e.getMessage());
+        log.warn("Возврат ответа 404 Not Found: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, Object>> handleAccessDenied(AccessDeniedException e) {
+        log.error("Обработка исключения AccessDeniedException: {} ", e.getMessage());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put(FIELD_STATUS, FIELD_ERROR);
+        response.put(FIELD_MESSAGE, "У вас нет прав для выполнения этого действия.");
+        log.warn("Возврат ответа 403 Forbidden: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException e) {
+        log.error("Обработка исключения IllegalArgumentException: {} ", e.getMessage());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put(FIELD_STATUS, FIELD_ERROR);
+        response.put(FIELD_MESSAGE, e.getMessage());
+        log.warn("Возврат ответа 400 Bad Request: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 }

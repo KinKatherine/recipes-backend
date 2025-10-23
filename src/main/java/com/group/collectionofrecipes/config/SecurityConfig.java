@@ -26,6 +26,7 @@ import java.util.List;
 
 import static com.group.collectionofrecipes.utils.ApiConstants.AUTH_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.CATEGORIES_URI;
+import static com.group.collectionofrecipes.utils.ApiConstants.COMMENTS_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.RECIPES_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.RECIPES_USER_ADDED_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.RECIPES_USER_FAVOURITES_URI;
@@ -61,6 +62,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, RECIPES_USER_FAVOURITES_URI).authenticated()
                         .requestMatchers(HttpMethod.GET, RECIPES_USER_ADDED_URI).authenticated()
                         .requestMatchers(HttpMethod.GET, RECIPE_ID_URI).hasAnyAuthority("ROLE_ANONYMOUS", UserRole.USER.name(),UserRole.ADMIN.name())
+
+                        .requestMatchers(HttpMethod.DELETE, COMMENTS_URI).hasAuthority(UserRole.ADMIN.name())
+
                         .anyRequest().permitAll()
                 )
                 .sessionManagement(session -> session

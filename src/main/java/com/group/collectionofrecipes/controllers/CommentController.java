@@ -11,7 +11,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -20,6 +23,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.group.collectionofrecipes.utils.ApiConstants.FIELD_ERROR;
+import static com.group.collectionofrecipes.utils.ApiConstants.FIELD_MESSAGE;
+import static com.group.collectionofrecipes.utils.ApiConstants.FIELD_STATUS;
 
 @Tag(name = "Comments")
 @Slf4j
@@ -29,53 +38,62 @@ public class CommentController {
 
     private final CommentService commentService;
 
-    //update опционально
-
     //СОЗДАНИЕ КОММЕНТАРИЯ
     @PostMapping("/api/v1/comments")
     public ApiResponse<CommentDTO> createComment(@RequestBody @Valid CreateCommentDTO createCommentDTO,
-                                     Principal principal) {
+                                                 Principal principal) {
 
         if (principal == null) {
             log.warn("Попытка создать комментарий без авторизации.");
-            return ApiResponse.unSuccess(HttpStatus.UNAUTHORIZED);
+            throw new AccessDeniedException("Недостаточно прав");
         }
-
         CommentDTO newCommentDTO = commentService.createComment(createCommentDTO, principal);
-        if (newCommentDTO == null) {
-            log.warn("Не удалось создать комментарий: Пользователь или рецепт не найдены.");
-            return ApiResponse.unSuccess(HttpStatus.NOT_FOUND);
-        }
 
         return ApiResponse.success(newCommentDTO);
     }
 
-    // УДАЛЕНИЕ КОММЕНТАРИЯ
+    //УДАЛЕНИЕ КОММЕНТАРИЯ
+    //@PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/api/v1/comments/{commentId}")
     public ApiResponse<CommentDTO> deleteComment(@PathVariable Long commentId) {
 
-        try {
-            CommentDTO deletedComment = commentService.deleteComment(commentId);
-            return ApiResponse.success(deletedComment);
-
-        } catch (EntityNotFoundException e) {
-            log.warn("Удаление не удалось: {}", e.getMessage());
-            return ApiResponse.unSuccess(HttpStatus.NOT_FOUND);
-        }
+        CommentDTO deletedComment = commentService.deleteComment(commentId);
+        return ApiResponse.success(deletedComment);
     }
 
-    // ОБНОВЛЕНИЕ КОММЕНТАРИЯ
+   //ОБНОВЛЕНИЕ КОММЕНТАРИЯ
     @PutMapping("/api/v1/comments/{commentId}")
     public ApiResponse<CommentDTO> updateComment(@PathVariable Long commentId,
-                                                            @RequestParam String newText) {
-        try {
-            CommentDTO updatedCommentDTO = commentService.updateComment(commentId, newText);
-            return ApiResponse.success(updatedCommentDTO);
+                                                 @RequestParam String newText,
+                                                 Principal principal) {
 
-        } catch (EntityNotFoundException e) {
-            log.warn("Обновление комментария ID {} не удалось: {}", commentId, e.getMessage());
-            return ApiResponse.unSuccess(HttpStatus.NOT_FOUND);
+        if (principal == null) {
+            log.warn("Попытка обновить комментарий без авторизации.");
+            throw new AccessDeniedException("Недостаточно прав");
         }
+        CommentDTO updatedCommentDTO = commentService.updateComment(commentId, newText, principal);
+        return ApiResponse.success(updatedCommentDTO);
     }
 
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleEntityNotFound(EntityNotFoundException e) {
+        log.error("Обработка исключения EntityNotFoundException: {} ", e.getMessage());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put(FIELD_STATUS, FIELD_ERROR);
+        response.put(FIELD_MESSAGE, e.getMessage());
+        log.warn("Возврат ответа 404 Not Found: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, Object>> handleAccessDenied(AccessDeniedException e) {
+        log.error("Обработка исключения AccessDeniedException: {} ", e.getMessage());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put(FIELD_STATUS, FIELD_ERROR);
+        response.put(FIELD_MESSAGE, "У вас нет прав для выполнения этого действия.");
+        log.warn("Возврат ответа 403 Forbidden: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    }
 }

@@ -60,6 +60,7 @@ public class RecipeService {
 
 
     //ГЛАВНАЯ СТРАНИЦА
+    @Transactional
     @Cacheable(
             value = "recipeOfTheDay",
             key = "T(java.time.LocalDate).now(T(java.time.ZoneId).of('Europe/Moscow'))"
@@ -82,26 +83,12 @@ public class RecipeService {
         final String currentUsername = (principal != null) ? principal.getName() : null;
 
         List<Recipe> recipeList = recipeRepository.findLatestRecipes(topThree);
-
         List<Long> ids = recipeList.stream().map(Recipe::getId).toList();
         List<RecipeRatingProjection> ratingList = recipeRepository.findAverageRatingsForRecipes(ids);
-
         Map<Long, Double> ratingMap = getAverageRatingsMap(ratingList);
 
         return recipeList.stream()
-                .map(recipe -> {
-                    RecipeDTO recipeDTO = recipeMapper.toRecipeDto(recipe);
-                    boolean isFavourite = currentUsername != null &&
-                            favouriteRepository.existsByRecipeIdAndUserUsername(
-                                    recipe.getId(),
-                                    currentUsername
-                            );
-                    recipeDTO.setIsFavourite(isFavourite);
-                    Double rawRating = ratingMap.getOrDefault(recipe.getId(), 0.0);
-                    recipeDTO.setAverageRating((int) Math.round(rawRating));
-
-                    return recipeDTO;
-                })
+                .map(recipe -> mapRecipeWithRatingAndFavorite(recipe, ratingMap, currentUsername))
                 .toList();
     }
 
@@ -122,7 +109,7 @@ public class RecipeService {
                 .map(i -> {
                     IngredientDTO dto = ingredientMapper.toIngredientDto(i.getIngredient());
                     dto.setAmount(i.getAmount());
-                    dto.setStringUnit(i.getUnit().getLabel()); // или i.getUnit().getLabel()?
+                    dto.setStringUnit(i.getUnit().getLabel());
                     return dto;
                 })
                 .toList();
@@ -135,26 +122,25 @@ public class RecipeService {
 
         RecipeDTO recipeDTO = recipeMapper.toRecipeDto(recipe);
         RatingStatsProjection statsProjection = recipeRepository.calculateRatingStats(id);
+
         recipeDTO.setAverageRating(statsProjection.getAverageRating());
         recipeDTO.setCountOfRatings(statsProjection.getCount());
         recipeDTO.setIngredientDTOs(ingredientDTOS);
         recipeDTO.setCommentDTOs(commentDTOS);
-
         recipeDTO.setCommentsCount(commentDTOS.size());
 
         if(principal!=null){
-            boolean isAppreciated = ratingRepository.existsByRecipeIdAndUserUsername(id, principal.getName());
-            if (!isAppreciated) recipeDTO.setUserRating(0);
-            else {
-                Rating rating = ratingRepository.findByRecipeIdAndUsername(id,principal.getName()).orElseThrow();
-                recipeDTO.setUserRating(rating.getEstimation());
-            }
+            String username = principal.getName();
+            ratingRepository.findByRecipeIdAndUserUsername(id, username)
+                    .ifPresentOrElse(
+                            rating -> recipeDTO.setUserRating(rating.getEstimation()),
+                            () -> recipeDTO.setUserRating(0)
+                    );
+
+            recipeDTO.setIsFavourite(
+                    favouriteRepository.existsByRecipeIdAndUserUsername(recipe.getId(), username)
+            );
         }
-
-        recipeDTO.setIsFavourite(
-                principal != null && favouriteRepository.existsByRecipeIdAndUserUsername(recipe.getId(), principal.getName())
-        );
-
         return recipeDTO;
     }
 
@@ -164,7 +150,7 @@ public class RecipeService {
     @Transactional(readOnly = true)
     public Page<RecipeDTO> getFavouriteUserRecipes(Principal principal, int pageNumber) {
         if (principal == null) {
-            return Page.empty(); // и на фронте сказать что избранное доступно только авторизованому пользователю
+            return Page.empty();
         }
         String username = principal.getName();
         Pageable pageRequest = PageRequest.of(
@@ -179,14 +165,7 @@ public class RecipeService {
         List<Long> recipeIds = favoriteRecipesPage.getContent().stream().map(Recipe::getId).toList();
         Map<Long, Double> ratingMap = getAverageRatingsMap(recipeRepository.findAverageRatingsForRecipes(recipeIds));
 
-        return favoriteRecipesPage.map(recipe -> {
-            RecipeDTO recipeDTO = recipeMapper.toRecipeDto(recipe);
-            recipeDTO.setIsFavourite(true);
-            Double rawRating = ratingMap.getOrDefault(recipe.getId(), 0.0);
-            recipeDTO.setAverageRating((int) Math.round(rawRating));
-
-            return recipeDTO;
-        });
+        return favoriteRecipesPage.map(recipe -> mapRecipeWithRatingAndFavorite(recipe, ratingMap, username));
     }
 
 
@@ -200,8 +179,7 @@ public class RecipeService {
                 Sort.by("createdAt").descending()
         );
 
-        Page<Recipe> unconfirmedRecipesPage =
-                recipeRepository.findUnconfirmedRecipes(pageRequest);
+        Page<Recipe> unconfirmedRecipesPage = recipeRepository.findUnconfirmedRecipes(pageRequest);
 
         return unconfirmedRecipesPage.map(recipe -> {
             RecipeDTO recipeDTO = recipeMapper.toRecipeDto(recipe);
@@ -210,6 +188,7 @@ public class RecipeService {
             return recipeDTO;
         });
     }
+
 
     //ОДОБРЕНИЕ РЕЦЕПТА АДМИНОМ
     public void confirmRecipe(Long id) {
@@ -231,7 +210,7 @@ public class RecipeService {
     @Transactional(readOnly = true)
     public Page<RecipeDTO> getUserAddedConfirmedRecipes(Principal principal, int pageNumber){
         if (principal == null) {
-            return Page.empty(); // и на фронте сказать что профиль с рецептами доступен только авторизованому пользователю
+            return Page.empty();
         }
         String username = principal.getName();
         Pageable pageRequest = PageRequest.of(
@@ -240,25 +219,18 @@ public class RecipeService {
                 Sort.by("createdAt").descending()
         );
 
-        Page<Recipe> userConfirmedRecipesPage =
-                recipeRepository.findConfirmedRecipesByAuthorUsername(username, pageRequest);
+        Page<Recipe> userConfirmedRecipesPage = recipeRepository.findConfirmedRecipesByAuthorUsername(username, pageRequest);
 
         List<Long> recipeIds = userConfirmedRecipesPage.getContent().stream().map(Recipe::getId).toList();
         Map<Long, Double> ratingMap = getAverageRatingsMap(recipeRepository.findAverageRatingsForRecipes(recipeIds));
 
-        return userConfirmedRecipesPage.map(recipe -> {
-            RecipeDTO recipeDTO = recipeMapper.toRecipeDto(recipe);
-            boolean isFavourite = favouriteRepository.existsByRecipeIdAndUserUsername(recipe.getId(),username);
-            recipeDTO.setIsFavourite(isFavourite);
-            Double rawRating = ratingMap.getOrDefault(recipe.getId(), 0.0);
-            recipeDTO.setAverageRating((int) Math.round(rawRating));
-
-            return recipeDTO;
-        });
+        return userConfirmedRecipesPage.map(recipe -> mapRecipeWithRatingAndFavorite(recipe, ratingMap, username));
 
     }
 
+
     //ПОЛУЧЕНИЕ РЕЦЕПТО ОПРЕДЕЛЁННОЙ КАТЕГОРИИ
+    @Transactional(readOnly = true)
     public Page<RecipeDTO> getRecipesByCategoryId(Long categoryId,Principal principal, int pageNumber) {
         log.info("Запрос на получение рецептов для категории с ID: {}", categoryId);
 
@@ -271,20 +243,23 @@ public class RecipeService {
         List<Long> recipeIds = recipesCategoryPage.getContent().stream().map(Recipe::getId).toList();
         Map<Long, Double> ratingMap = getAverageRatingsMap(recipeRepository.findAverageRatingsForRecipes(recipeIds));
 
+        final String currentUsername = (principal != null) ? principal.getName() : null;
 
-        return recipesCategoryPage.map(recipe -> {
-            RecipeDTO recipeDTO = recipeMapper.toRecipeDto(recipe);
-            boolean isFavourite;
-            if (principal==null) isFavourite = false;
-            else {
-                isFavourite = favouriteRepository.existsByRecipeIdAndUserUsername(recipe.getId(), principal.getName());
-            }
-            recipeDTO.setIsFavourite(isFavourite);
-            Double rawRating = ratingMap.getOrDefault(recipe.getId(), 0.0);
-            recipeDTO.setAverageRating((int) Math.round(rawRating));
+        return recipesCategoryPage.map(recipe -> mapRecipeWithRatingAndFavorite(recipe, ratingMap, currentUsername));
+    }
 
-            return recipeDTO;
-        });
+    @Transactional(readOnly = true)
+    public List<RecipeDTO> getPopularRecipes(Principal principal) {
+
+        List<Recipe> recipes = recipeRepository.findTop10ByRatingAndVotesCount();
+        List<Long> recipeIds = recipes.stream().map(Recipe::getId).toList();
+        Map<Long, Double> ratingMap = getAverageRatingsMap(recipeRepository.findAverageRatingsForRecipes(recipeIds));
+
+        final String currentUsername = (principal != null) ? principal.getName() : null;
+
+        return recipes.stream()
+                .map(recipe -> mapRecipeWithRatingAndFavorite(recipe, ratingMap, currentUsername))
+                .toList();
     }
 
 
@@ -292,6 +267,19 @@ public class RecipeService {
     private Map<Long, Double> getAverageRatingsMap( List<RecipeRatingProjection> ratingList) {
         return ratingList.stream()
                 .collect(Collectors.toMap(RecipeRatingProjection::getId, RecipeRatingProjection::getAverageRating));
+    }
+
+
+    //УТИЛЬНЫЙ МЕТОД
+    private RecipeDTO mapRecipeWithRatingAndFavorite(Recipe recipe, Map<Long, Double> ratingMap, String currentUsername) {
+        RecipeDTO dto = recipeMapper.toRecipeDto(recipe);
+        Double rawRating = ratingMap.getOrDefault(recipe.getId(), 0.0);
+        dto.setAverageRating((int) Math.round(rawRating));
+        boolean isFavourite = currentUsername != null &&
+                favouriteRepository.existsByRecipeIdAndUserUsername(recipe.getId(), currentUsername);
+        dto.setIsFavourite(isFavourite);
+
+        return dto;
     }
 
 
@@ -367,4 +355,5 @@ public class RecipeService {
             throw new IllegalArgumentException("Рецепт с таким названием уже существует");
         }
     }
+
 }

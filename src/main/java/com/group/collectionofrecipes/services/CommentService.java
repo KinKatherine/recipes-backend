@@ -12,6 +12,7 @@ import com.group.collectionofrecipes.repositories.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,60 +37,66 @@ public class CommentService {
         String username = principal.getName();
         Long recipeId = createCommentDTO.getRecipeId();
 
-        try {
-            User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new EntityNotFoundException(ERROR_USER_NOT_FOUND + username));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> {
+                    log.warn("Пользователь {} не найден при попытке создания комментария.", username);
+                    return new EntityNotFoundException(ERROR_USER_NOT_FOUND + username);
+                });
 
-            Recipe recipe = recipeRepository.findById(recipeId)
-                    .orElseThrow(() -> new EntityNotFoundException("Рецепт не найден по id: " + recipeId));
+        Recipe recipe = recipeRepository.findById(recipeId)
+                .orElseThrow(() -> {
+                    log.warn("Рецепт ID {} не найден при попытке создания комментария.", recipeId);
+                    return new EntityNotFoundException("Рецепт не найден по id: " + recipeId);
+                });
 
-            Comment newComment = commentMapper.toCommentEntity(createCommentDTO, user, recipe);
-            Comment savedComment = commentRepository.save(newComment);
-            log.info("Комментарий ID {} успешно создан пользователем {} для рецепта ID {}.", savedComment.getId(), username, recipeId);
+        Comment newComment = commentMapper.toCommentEntity(createCommentDTO, user, recipe);
+        Comment savedComment = commentRepository.save(newComment);
 
-            return commentMapper.toCommentDto(savedComment);
+        log.info("Комментарий ID {} успешно создан пользователем {} для рецепта ID {}.",
+                savedComment.getId(), username, recipeId);
 
-        } catch (EntityNotFoundException e) {
-            log.error("Не удалось создать комментарий для рецепта ID {}. Ошибка: {}", recipeId, e.getMessage(), e);
-            return null;
-        }
+        return commentMapper.toCommentDto(savedComment);
     }
 
     @Transactional
     public CommentDTO deleteComment(Long commentId) {
 
-        try {
-            Comment comment = commentRepository.findById(commentId).orElseThrow(() -> new EntityNotFoundException(ERROR_COMMENT_NOT_FOUND + commentId));
-            commentRepository.delete(comment);
-            log.info("Комментарий ID {} успешно удален админисиратором (или по ID) для рецепта ID {}.", comment.getId(), comment.getRecipe().getId());
-            return commentMapper.toCommentDto(comment);
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> {
+                    log.warn("Комментарий ID {} не найден для удаления.", commentId);
+                    return new EntityNotFoundException(ERROR_COMMENT_NOT_FOUND + commentId);
+                });
 
-        } catch (EntityNotFoundException e) {
-            log.error("Не удалось удалить комментарий с id {}. Ошибка: {}", commentId,e.getMessage(), e);
-            throw e;
-        }
+        Long recipeId = comment.getRecipe().getId();
+        commentRepository.delete(comment);
+        log.info("Комментарий ID {} успешно удален для рецепта ID {}.", comment.getId(), recipeId);
+
+        return commentMapper.toCommentDto(comment);
     }
 
     @Transactional
-    public CommentDTO updateComment(Long commentId, String newText) {
-        try {
-            Comment commentToUpdate = commentRepository.findById(commentId)
-                    .orElseThrow(() -> {
-                        log.error("Комментарий ID {} не найден для обновления.", commentId);
-                        return new EntityNotFoundException(ERROR_COMMENT_NOT_FOUND + commentId);
-                    });
+    public CommentDTO updateComment(Long commentId, String newText, Principal principal) {
 
-            String oldText = commentToUpdate.getCommentText();
-            commentToUpdate.setCommentText(newText);
-            Comment updatedComment = commentRepository.save(commentToUpdate);
+        Comment commentToUpdate = commentRepository.findById(commentId)
+                .orElseThrow(() -> {
+                    log.warn("Комментарий ID {} не найден для обновления.", commentId);
+                    return new EntityNotFoundException(ERROR_COMMENT_NOT_FOUND + commentId);
+                });
 
-            log.info("Комментарий ID {} обновлен: текст изменен с '{}' на '{}'.", commentId, oldText, newText);
-
-            return commentMapper.toCommentDto(updatedComment);
-
-        } catch (EntityNotFoundException e) {
-            log.error("Не удалось обновить комментарий с id {}. Ошибка: {}", commentId, e.getMessage(), e);
-            throw e;
+        String currentUsername = principal.getName();
+        if (!commentToUpdate.getUser().getUsername().equals(currentUsername)) {
+            log.warn("Пользователь {} попытался обновить комментарий ID {}, принадлежащий {}. Доступ запрещен.",
+                    currentUsername, commentId, commentToUpdate.getUser().getUsername());
+            throw new AccessDeniedException("Вы не являетесь автором этого комментария и не можете его изменить.");
         }
+
+        String oldText = commentToUpdate.getCommentText();
+        commentToUpdate.setCommentText(newText);
+        Comment updatedComment = commentRepository.save(commentToUpdate);
+
+        log.info("Комментарий ID {} успешно обновлен пользователем {}. Текст: '{}' -> '{}'.",
+                commentId, currentUsername, oldText, newText);
+
+        return commentMapper.toCommentDto(updatedComment);
     }
 }

@@ -20,7 +20,7 @@ public class CreateRecipeDTO {
     //это для Post - запросов
 
     @NotBlank()
-    @Size(min = 3, max = 100)
+    @Size(min = 3, max = 50)
     private String title;
 
     @NotBlank()
@@ -44,5 +44,5 @@ public class CreateRecipeDTO {
     private Integer countOfServings;
 
     @NotNull()
-    private Long categoryId;
+    private Long categoryId; //или имя категории?
 }

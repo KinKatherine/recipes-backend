@@ -37,7 +37,7 @@ public class AuthUserController {
     private final AuthenticationManager authenticationManager;
 
     @PostMapping("/api/v1/auth/login")
-    public ResponseEntity<Object> createAuthToken(@RequestBody JwtRequest authRequest) {
+    public ResponseEntity<Object> createAuthToken(@RequestBody @Valid JwtRequest authRequest) {
         log.info("Post  /api/v1/auth/login");
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));

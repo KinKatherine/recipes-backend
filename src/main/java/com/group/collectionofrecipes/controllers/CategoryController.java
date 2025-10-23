@@ -86,7 +86,7 @@ public class CategoryController {
     }
 
     @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<Map<String, Object>> handleIllegalState(IllegalArgumentException e) {
+    public ResponseEntity<Map<String, Object>> handleIllegalState(IllegalStateException e) {
         log.error("Обработка исключения IllegalStateException: {} ", e.getMessage());
 
         Map<String, Object> response = new HashMap<>();

@@ -35,72 +35,56 @@ public class RatingService{
         String username = principal.getName();
         Long recipeId = createRatingDTO.getRecipeId();
 
-        try {
-            User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new EntityNotFoundException(ERROR_USER_NOT_FOUND + username));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException(ERROR_USER_NOT_FOUND + username));
 
-            Recipe recipe = recipeRepository.findById(recipeId)
-                    .orElseThrow(() -> new EntityNotFoundException("Рецепт не найден по id: " + recipeId));
+        Recipe recipe = recipeRepository.findById(recipeId)
+                .orElseThrow(() -> new EntityNotFoundException("Рецепт не найден по id: " + recipeId));
 
-            Rating newRating = ratingMapper.toRatingEntity(createRatingDTO, user, recipe);
-            Rating savedRating = ratingRepository.save(newRating);
-            log.info("Рейтинг ID {} успешно создан пользователем {} для рецепта ID {}.", savedRating.getId(), username, recipeId);
 
-            return ratingMapper.toRatingDto(savedRating);
+        boolean existingRating = ratingRepository.existsByRecipeIdAndUserId(recipeId, user.getId());
 
-        } catch (EntityNotFoundException e) {
-            log.error("Не удалось создать рейтинг для рецепта ID {}. Ошибка: {}", recipeId, e.getMessage(), e);
-            return null;
+        if (existingRating) {
+            log.warn("Пользователь {} уже оценил рецепт ID {}. Создание дублирующего рейтинга запрещено.", username, recipeId);
+            throw new IllegalStateException("Вы уже поставили рейтинг этому рецепту. Используйте PUT для обновления.");
         }
+
+        Rating newRating = ratingMapper.toRatingEntity(createRatingDTO, user, recipe);
+        Rating savedRating = ratingRepository.save(newRating);
+        log.info("Рейтинг ID {} успешно создан пользователем {} для рецепта ID {}.", savedRating.getId(), username, recipeId);
+
+        return ratingMapper.toRatingDto(savedRating);
     }
 
     @Transactional
     public RatingDTO deleteRating(Long recipeId, Principal principal) {
 
         String username = principal.getName();
+        Rating ratingToDelete = ratingRepository.findByRecipeIdAndUserUsername(recipeId, principal.getName())
+                .orElseThrow(() -> new EntityNotFoundException("Рейтинг для рецепта ID " + recipeId + " от пользователя " + username + " не найден."));
 
-        try {
-            User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new EntityNotFoundException(ERROR_USER_NOT_FOUND + username));
+        Long ratingId = ratingToDelete.getId();
+        ratingRepository.delete(ratingToDelete);
 
-            Rating ratingToDelete = ratingRepository.findByRecipeIdAndUserId(recipeId, user.getId())
-                    .orElseThrow(() -> new EntityNotFoundException("Рейтинг для рецепта ID " + recipeId + " от пользователя " + username + " не найден."));
+        log.info("Рейтинг ID {} успешно удален пользователем {} для рецепта ID {}.", ratingId, username, recipeId);
 
-            Long ratingId = ratingToDelete.getId();
-            ratingRepository.delete(ratingToDelete);
-
-            log.info("Рейтинг ID {} успешно удален пользователем {} для рецепта ID {}.", ratingId, username, recipeId);
-
-            return ratingMapper.toRatingDto(ratingToDelete);
-
-        } catch (EntityNotFoundException e) {
-            log.error("Не удалось удалить рейтинг для рецепта ID {}. Ошибка: {}", recipeId, e.getMessage(), e);
-            throw e;
-        }
+        return ratingMapper.toRatingDto(ratingToDelete);
     }
 
     @Transactional
     public RatingDTO updateRating(Long recipeId, Integer estimation, Principal principal){
 
         String username = principal.getName();
+        Rating existingRating = ratingRepository.findByRecipeIdAndUserUsername(recipeId, principal.getName())
+                .orElseThrow(() -> new EntityNotFoundException("Рейтинг для рецепта ID " + recipeId + " от пользователя " + username + " не найден. Невозможно обновить."));
 
-        try {
-            User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new EntityNotFoundException(ERROR_USER_NOT_FOUND + username));
-
-            Rating existingRating = ratingRepository.findByRecipeIdAndUserId(recipeId, user.getId())
-                    .orElseThrow(() -> new EntityNotFoundException("Рейтинг для рецепта ID " + recipeId + " от пользователя " + username + " не найден. Невозможно обновить."));
-
-            Long ratingId = existingRating.getId();
-            log.info("Обновление рейтинга ID {} от пользователя {}: оценка изменена с {} на {}.", ratingId, username, existingRating.getEstimation(), estimation);
-            existingRating.setEstimation(estimation);
-            Rating updatedRating = ratingRepository.save(existingRating);
-            return ratingMapper.toRatingDto(updatedRating);
-
-        } catch (EntityNotFoundException e) {
-            log.error("Не удалось обновить рейтинг для рецепта ID {}. Ошибка: {}", recipeId, e.getMessage(), e);
-            throw e;
-        }
+        Long ratingId = existingRating.getId();
+        log.info("Обновление рейтинга ID {} от пользователя {}: оценка изменена с {} на {}.", ratingId, username, existingRating.getEstimation(), estimation);
+        existingRating.setEstimation(estimation);
+        Rating updatedRating = ratingRepository.save(existingRating);
+        return ratingMapper.toRatingDto(updatedRating);
     }
+
+
 
 }

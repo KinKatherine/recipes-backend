@@ -18,6 +18,6 @@ public class CreateCommentDTO {
     private Long recipeId;
 
     @NotBlank()
-    @Size(max = 1000)
+    @Size(min = 1,max = 1000)
     private String commentText;
 }

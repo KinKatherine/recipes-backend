@@ -55,6 +55,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
     @Query("SELECT r.id AS id, COALESCE(AVG(rating.estimation), 0.0) AS averageRating " +
             "FROM Recipe r LEFT JOIN Rating rating ON r.id = rating.recipe.id " +
             "WHERE r.id IN :recipeIds GROUP BY r.id")
+
     List<RecipeRatingProjection> findAverageRatingsForRecipes(@Param("recipeIds") List<Long> recipeIds);
 
 
@@ -84,10 +85,11 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
     Page<Recipe> findUnconfirmedRecipes(Pageable pageable);
 
     //ПОИСК РЕЦЕПТОВ ОПРЕДЕЛЕННОЙ КАТЕГОРИИ
-    @Query("SELECT r FROM Recipe r " +
-            "JOIN FETCH r.author " +
-            "JOIN FETCH r.category " +
-            "WHERE r.category_id = :authorId")
+    @Query("SELECT r FROM Recipe r "+
+            "JOIN FETCH r.author "+
+            "JOIN FETCH r.category "+
+            "WHERE r.category.id = :categoryId "+
+            "AND r.isConfirmed = true")
     Page<Recipe> findRecipesByCategoryId(Long categoryId, Pageable pageable);
 
 

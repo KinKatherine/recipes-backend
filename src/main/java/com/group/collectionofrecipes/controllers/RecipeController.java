@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -68,33 +69,38 @@ public class RecipeController {
     @GetMapping("/api/v1/recipes/favourites")
     public ApiResponse<List<RecipeDTO>> getUserFavouriteRecipes(@RequestParam(defaultValue = "0") int page, Principal principal) {
         Page<RecipeDTO> recipePage = recipeService.getFavouriteUserRecipes(principal,page);
-        return ApiResponse.success(recipePage.getContent(), (PaginationInfo) recipePage);
+        return ApiResponse.success(recipePage.getContent(), getPaginationInfo(recipePage));
     }
+
 
     //СТРАНИЦА ПОЛЬЗОВАТЕЛЯ МОИ ПОДТВЕРЖДЕННЫЕ РЕЦЕПТЫ
     @GetMapping("/api/v1/recipes/my-recipes")
     public ApiResponse<List<RecipeDTO>> getUserAddedConfirmedRecipes(@RequestParam(defaultValue = "0") int page,Principal principal) {
         Page<RecipeDTO> recipePage = recipeService.getUserAddedConfirmedRecipes(principal,page);
-        return ApiResponse.success(recipePage.getContent(), (PaginationInfo) recipePage);
+        return ApiResponse.success(recipePage.getContent(), getPaginationInfo(recipePage));
     }
 
     //СТРАНИЦА АДМИНИСТРАТОРА НЕПОДТВЕРЖДЕННЫЕ РЕЦЕПТЫ
     @GetMapping("/api/v1/recipes/unconfirmed")
     public ApiResponse<List<RecipeDTO>> getUnconfirmedRecipes(@RequestParam(defaultValue = "0") int page) {
         Page<RecipeDTO> recipePage = recipeService.getUnconfirmedRecipes(page);
-        return ApiResponse.success(recipePage.getContent(), (PaginationInfo) recipePage);
+        return ApiResponse.success(recipePage.getContent(), getPaginationInfo(recipePage));
     }
 
     //ОДОБРЕНИЕ РЕЦЕПТА АДМИНОМ
     // добавить сохранение ингредиента
-    @GetMapping("/api/v1/recipes/confirm")
-    public ApiResponse<Object> confirmRecipe(@RequestParam Long id){
+    @PutMapping("/api/v1/recipes/confirm/{id}")
+    public ApiResponse<Object> confirmRecipe(@PathVariable Long id){
         recipeService.confirmRecipe(id);
         return ApiResponse.success();
     }
 
 
     @GetMapping("/api/v1/recipes/popular")
+    public ApiResponse<List<RecipeDTO>> getPopularRecipes(Principal principal){
+        List<RecipeDTO> recipeDTOList =  recipeService.getPopularRecipes(principal);
+        return ApiResponse.success(recipeDTOList);
+    }
 
 
     @PostMapping("/api/v1/recipes")
@@ -112,10 +118,25 @@ public class RecipeController {
 
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleEntityNotFound(EntityNotFoundException e) {
+        log.error("Обработка исключения EntityNotFoundException: {} ", e.getMessage());
+
         Map<String, Object> response = new HashMap<>();
         response.put(FIELD_STATUS, FIELD_ERROR);
         response.put(FIELD_MESSAGE, e.getMessage());
+        log.warn("Возврат ответа 404 Not Found: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    //УТИЛЬНЫЙ МЕТОД
+    private PaginationInfo getPaginationInfo(Page<RecipeDTO> dataPage){
+        return PaginationInfo.builder()
+                .currentPage(dataPage.getNumber())
+                .totalPages(dataPage.getTotalPages())
+                .totalItems(dataPage.getTotalElements())
+                .pageSize(dataPage.getSize())
+                .hasNext(dataPage.hasNext())
+                .hasPrevious(dataPage.hasPrevious())
+                .build();
     }
 
 }

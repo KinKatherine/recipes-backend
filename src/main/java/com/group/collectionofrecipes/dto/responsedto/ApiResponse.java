@@ -15,23 +15,22 @@ import static com.group.collectionofrecipes.utils.ApiConstants.FIELD_SUCCESS;
 public class ApiResponse<T> {
 
     private String status;
-    private String message;
     private T data;
     private PaginationInfo pagination;
 
     public static <T> ApiResponse<T> success(T data) {
-        return new ApiResponse<>(FIELD_SUCCESS, null, data, null);
+        return new ApiResponse<>(FIELD_SUCCESS, data, null);
     }
 
     public static <T> ApiResponse<T> success() {
-        return new ApiResponse<>(FIELD_SUCCESS,null, null,null);
+        return new ApiResponse<>(FIELD_SUCCESS, null,null);
     }
 
     public static <T> ApiResponse<T> success(T data, PaginationInfo pagination) {
-        return new ApiResponse<>(FIELD_SUCCESS, null, data, pagination);
+        return new ApiResponse<>(FIELD_SUCCESS, data, pagination);
     }
 
     public static <T> ApiResponse<T> unSuccess(HttpStatus status) {
-        return new ApiResponse<>(status.getReasonPhrase(), null, null, null);
+        return new ApiResponse<>(status.getReasonPhrase(), null, null);
     }
 }

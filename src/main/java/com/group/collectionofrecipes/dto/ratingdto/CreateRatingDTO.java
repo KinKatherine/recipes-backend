@@ -17,6 +17,7 @@ public class CreateRatingDTO {
 
     @NotNull()
     private Long recipeId;
+
     @NotNull()
     @Positive()
     @Min(1)
