@@ -29,6 +29,10 @@ public final class ApiConstants {
     public static final String COMMENTS_URI = "/api/v1/comments";
     public static final String COMMENT_ID_URI="/api/v1/comments/{commentId}";
 
+    //рейтинги
+    public static final String RATINGS_URI ="/api/v1/ratings";
+    public static final String RATING_ID_URI ="/api/v1/ratings/{recipeId}";
+
     public static final String RECIPES_URI = "/api/v1/recipes";
     public static final String RECIPE_ID_URI = "/api/v1/recipes/{id}";
     public static final String RECIPES_USER_FAVOURITES_URI = "/api/v1/recipes/{id}";

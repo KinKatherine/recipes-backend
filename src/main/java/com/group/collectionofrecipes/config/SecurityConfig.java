@@ -31,6 +31,8 @@ import static com.group.collectionofrecipes.utils.ApiConstants.CATEGORY_RECIPES_
 import static com.group.collectionofrecipes.utils.ApiConstants.COMMENTS_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.COMMENT_ID_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.EMAIL_VERIFICATION_URI;
+import static com.group.collectionofrecipes.utils.ApiConstants.RATINGS_URI;
+import static com.group.collectionofrecipes.utils.ApiConstants.RATING_ID_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.RECIPES_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.RECIPES_USER_ADDED_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.RECIPES_USER_FAVOURITES_URI;
@@ -65,6 +67,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, COMMENTS_URI).authenticated()
                         .requestMatchers(HttpMethod.DELETE,COMMENT_ID_URI).hasAuthority(UserRole.ADMIN.name())
                         .requestMatchers(HttpMethod.PUT,COMMENT_ID_URI).hasAuthority(UserRole.ADMIN.name()) //не используется
+
+                        //рейтинг
+                        .requestMatchers(HttpMethod.POST, RATINGS_URI).authenticated()
+                        .requestMatchers(HttpMethod.DELETE,RATING_ID_URI).authenticated()
+                        .requestMatchers(HttpMethod.PUT,RATING_ID_URI).authenticated()
 
                         .requestMatchers(HttpMethod.POST, RECIPES_URI).authenticated()
                         .requestMatchers(HttpMethod.DELETE, RECIPE_ID_URI).hasRole(UserRole.ADMIN.name())

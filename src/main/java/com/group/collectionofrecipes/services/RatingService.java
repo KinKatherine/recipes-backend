@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Principal;
 
+import static com.group.collectionofrecipes.utils.ApiConstants.ERROR_RECIPE_NOT_FOUND;
 import static com.group.collectionofrecipes.utils.ApiConstants.ERROR_USER_NOT_FOUND;
 
 @Service
@@ -32,14 +33,21 @@ public class RatingService{
     @Transactional
     public RatingDTO createRating(CreateRatingDTO createRatingDTO, Principal principal) {
 
+        log.info("Запрос на оценку рецепта с id {} пользователем {}",createRatingDTO.getRecipeId(),principal.getName());
         String username = principal.getName();
         Long recipeId = createRatingDTO.getRecipeId();
 
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new EntityNotFoundException(ERROR_USER_NOT_FOUND + username));
+                .orElseThrow(() -> {
+                    log.warn("Пользователь {} не найден при попытке создания оценки.", username);
+                    return new EntityNotFoundException(ERROR_USER_NOT_FOUND + username);
+                });
 
         Recipe recipe = recipeRepository.findById(recipeId)
-                .orElseThrow(() -> new EntityNotFoundException("Рецепт не найден по id: " + recipeId));
+                .orElseThrow(() -> {
+                    log.warn("Рецепт с id {} не найден при попытке создания оценки.", createRatingDTO.getRecipeId());
+                    return new EntityNotFoundException(ERROR_RECIPE_NOT_FOUND + recipeId);
+                });
 
 
         boolean existingRating = ratingRepository.existsByRecipeIdAndUserId(recipeId, user.getId());
@@ -59,9 +67,13 @@ public class RatingService{
     @Transactional
     public RatingDTO deleteRating(Long recipeId, Principal principal) {
 
+        log.info("Запрос на удаление оценки рецепта с id {} пользователем {}",recipeId,principal.getName());
         String username = principal.getName();
         Rating ratingToDelete = ratingRepository.findByRecipeIdAndUserUsername(recipeId, principal.getName())
-                .orElseThrow(() -> new EntityNotFoundException("Рейтинг для рецепта ID " + recipeId + " от пользователя " + username + " не найден."));
+                .orElseThrow(() -> {
+                    log.warn("Рейтинг для рецепта ID {} от пользователя {} не найден.", recipeId, username);
+                    return new EntityNotFoundException("Рейтинг для рецепта от пользователя не найден.");
+                });
 
         Long ratingId = ratingToDelete.getId();
         ratingRepository.delete(ratingToDelete);
@@ -76,12 +88,15 @@ public class RatingService{
 
         String username = principal.getName();
         Rating existingRating = ratingRepository.findByRecipeIdAndUserUsername(recipeId, principal.getName())
-                .orElseThrow(() -> new EntityNotFoundException("Рейтинг для рецепта ID " + recipeId + " от пользователя " + username + " не найден. Невозможно обновить."));
+                .orElseThrow(() ->{
+                    log.warn("Рейтинг для рецепта ID {} от пользователя {} не найден. Невозможно обновить.", recipeId, username);
+                    return new EntityNotFoundException("Рейтинг для рецепта ID  от пользователя не найден. Невозможно обновить.");
+                });
 
         Long ratingId = existingRating.getId();
-        log.info("Обновление рейтинга ID {} от пользователя {}: оценка изменена с {} на {}.", ratingId, username, existingRating.getEstimation(), estimation);
         existingRating.setEstimation(estimation);
         Rating updatedRating = ratingRepository.save(existingRating);
+        log.info("Обновление рейтинга ID {} от пользователя {}: оценка изменена с {} на {}.", ratingId, username, existingRating.getEstimation(), estimation);
         return ratingMapper.toRatingDto(updatedRating);
     }
 
