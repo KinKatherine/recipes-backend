@@ -18,6 +18,7 @@ import java.util.List;
 
 import static com.group.collectionofrecipes.utils.ApiConstants.ERROR_CATEGORY_NOT_FOUND;
 
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -38,18 +39,6 @@ public class CategoryService {
         log.info("Найдено {} категорий", categoryDTOList.size());
         return categoryDTOList;
     }
-
-    public CategoryDTO findCategoryById(Long id) {
-        log.info("Запрос на получение категории по ID: {}", id);
-        Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.error("Категория с ID {} не найдена", id);
-                    return new EntityNotFoundException(ERROR_CATEGORY_NOT_FOUND + id);
-                });
-        log.info("Категория с ID {} успешно найдена: {}", id, category.getName());
-        return categoryMapper.toCategoryDto(category);
-    }
-
 
     public CategoryDTO saveCategory(CreateCategoryDTO createCategoryDTO) {
         log.info("Запрос на создание новой категории: {}", createCategoryDTO.getName());
@@ -112,4 +101,16 @@ public class CategoryService {
             throw e;
         }
     }
+
+    public CategoryDTO findCategoryById(Long id) {
+        log.info("Запрос на получение категории по ID: {}", id);
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.error("Категория с ID {} не найдена", id);
+                    return new EntityNotFoundException(ERROR_CATEGORY_NOT_FOUND + id);
+                });
+        log.info("Категория с ID {} успешно найдена: {}", id, category.getName());
+        return categoryMapper.toCategoryDto(category);
+    }
+
 }

@@ -110,8 +110,7 @@ public class CategoryController {
 
 
 
-
-    //ПОКА НЕ НАДО
+   //ПОКА НЕ НАДО
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/api/v1/categories")
     public ApiResponse<CategoryDTO> createCategory(@RequestBody @Valid CreateCategoryDTO createCategoryDTO) {

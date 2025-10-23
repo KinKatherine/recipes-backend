@@ -11,9 +11,6 @@ public final class ApiConstants {
     public static final String FIELD_MESSAGE = "message";
     public static final String FIELD_ERROR = "error";
 
-    public static final String FIELD_RATING = "rating";
-    public static final String FIELD_COMMENT = "comment";
-
     public static final String ERROR_CATEGORY_NOT_FOUND = "Категория не найдена по id";
     public static final String ERROR_RECIPE_NOT_FOUND = "Рецепт не найден по id";
     public static final String ERROR_USER_NOT_FOUND = "Пользователь не найден по username: ";
@@ -21,7 +18,9 @@ public final class ApiConstants {
 
     public static final String AUTH_URI = "/api/v1/auth/**";
 
+    //категории
     public static final String CATEGORIES_URI = "/api/v1/categories";
+    public static final String CATEGORY_RECIPES_URI = "/api/v1/categories/{categoryId}/recipes";
 
     public static final String RECIPES_URI = "/api/v1/recipes";
     public static final String RECIPE_ID_URI = "/api/v1/recipes/{id}";
