@@ -24,7 +24,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.group.collectionofrecipes.utils.ApiConstants.AUTH_URI;
+import static com.group.collectionofrecipes.utils.ApiConstants.AUTH_LOGIN_URI;
+import static com.group.collectionofrecipes.utils.ApiConstants.AUTH_REGISTER_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.CATEGORIES_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.CATEGORY_RECIPES_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.COMMENTS_URI;
@@ -49,12 +50,13 @@ public class SecurityConfig {
                 .cors(c -> c.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auths -> auths
 
-                        .requestMatchers(AUTH_URI).permitAll()
+                        //пользователь
+                        .requestMatchers(HttpMethod.POST,AUTH_REGISTER_URI).permitAll()
+                        .requestMatchers(HttpMethod.POST,AUTH_LOGIN_URI).permitAll()
 
                         //категории
                         .requestMatchers(HttpMethod.GET, CATEGORIES_URI).permitAll()
                         .requestMatchers(HttpMethod.GET, CATEGORY_RECIPES_URI).permitAll()
-
 
                         .requestMatchers(HttpMethod.POST, RECIPES_URI).authenticated()
                         .requestMatchers(HttpMethod.DELETE, RECIPE_ID_URI).hasRole(UserRole.ADMIN.name())
