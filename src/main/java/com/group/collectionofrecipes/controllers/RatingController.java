@@ -48,7 +48,7 @@ public class RatingController {
             throw new AccessDeniedException("Недостаточно прав");
         }
         RatingDTO newRatingDTO = ratingService.createRating(createRatingDTO, principal);
-        log.info("GET /api/v1/ratings - оценка с id {} успешно создана",newRatingDTO.getId());
+        log.info("GET /api/v1/ratings - оценка с id {} успешно создана", newRatingDTO.getId());
         return ApiResponse.success(newRatingDTO);
     }
 
@@ -58,13 +58,13 @@ public class RatingController {
     public ApiResponse<RatingDTO> deleteRating(@PathVariable Long recipeId,
                                                Principal principal) {
 
-        log.info("DELETE /api/v1/ratings/{}",recipeId);
+        log.info("DELETE /api/v1/ratings/{}", recipeId);
         if (principal == null) {
             log.warn("Попытка удалить рейтинг без авторизации.");
             throw new AccessDeniedException("Недостаточно прав");
         }
         RatingDTO deletedRating = ratingService.deleteRating(recipeId, principal);
-        log.info("DELETE /api/v1/ratings/{} - оценка с id {} успешно удалена",recipeId,deletedRating.getId());
+        log.info("DELETE /api/v1/ratings/{} - оценка с id {} успешно удалена", recipeId, deletedRating.getId());
         return ApiResponse.success(deletedRating);
     }
 
@@ -75,7 +75,7 @@ public class RatingController {
                                                @RequestParam Integer newEstimation,
                                                Principal principal) {
 
-        log.info("PUT /api/v1/ratings/{}",recipeId);
+        log.info("PUT /api/v1/ratings/{}", recipeId);
         if (newEstimation <= 0 || newEstimation > 5) {
             throw new IllegalArgumentException("Рейтинг должен быть от 1 до 5");
         }
@@ -85,7 +85,7 @@ public class RatingController {
             throw new AccessDeniedException("Недостаточно прав");
         }
         RatingDTO updatedRatingDTO = ratingService.updateRating(recipeId, newEstimation, principal);
-        log.info("PUT /api/v1/ratings/{} - оценка с id {} успешно изменена на {}",recipeId,updatedRatingDTO.getId(),newEstimation);
+        log.info("PUT /api/v1/ratings/{} - оценка с id {} успешно изменена на {}", recipeId, updatedRatingDTO.getId(), newEstimation);
         return ApiResponse.success(updatedRatingDTO);
     }
 

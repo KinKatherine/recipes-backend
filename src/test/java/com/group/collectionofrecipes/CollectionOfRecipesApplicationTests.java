@@ -6,9 +6,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 class CollectionOfRecipesApplicationTests {
 
-	@Test
-	void contextLoads() {
-		// Этот метод является стандартным тестом Spring Boot.
-	}
+    @Test
+    void contextLoads() {
+        // Этот метод является стандартным тестом Spring Boot.
+    }
 
 }

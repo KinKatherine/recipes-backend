@@ -20,7 +20,7 @@ import java.util.Optional;
 public interface RecipeRepository extends JpaRepository<Recipe, Long> {
 
 
-     // ДЛЯ ОДНОГО РЕЦЕПТА
+    // ДЛЯ ОДНОГО РЕЦЕПТА
     @Query("SELECT r FROM Recipe r " +
             "JOIN FETCH r.author " +
             "JOIN FETCH r.category " +
@@ -55,7 +55,6 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
     @Query("SELECT r.id AS id, COALESCE(AVG(rating.estimation), 0.0) AS averageRating " +
             "FROM Recipe r LEFT JOIN Rating rating ON r.id = rating.recipe.id " +
             "WHERE r.id IN :recipeIds GROUP BY r.id")
-
     List<RecipeRatingProjection> findAverageRatingsForRecipes(@Param("recipeIds") List<Long> recipeIds);
 
 
@@ -66,7 +65,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
             "WHERE r.isConfirmed = true " +
             "AND fb.user.username = :username " +
             "ORDER BY fb.addedAt DESC")
-    Page<Recipe> findConfirmedFavoriteRecipesByUsername(@Param("username") String username,Pageable pageable);
+    Page<Recipe> findConfirmedFavoriteRecipesByUsername(@Param("username") String username, Pageable pageable);
 
 
     //ДЛЯ ОБОБРЕННЫХ РЕЦЕПТОВ ПОЛЬЗОВАТЕЛЯ
@@ -75,7 +74,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
             "JOIN FETCH r.category " +
             "WHERE r.isConfirmed = true " +
             "AND r.author.username = :username ")
-    Page<Recipe> findConfirmedRecipesByAuthorUsername(@Param("username") String username,Pageable pageable);
+    Page<Recipe> findConfirmedRecipesByAuthorUsername(@Param("username") String username, Pageable pageable);
 
     //ДЛЯ НЕОБОДРЕННЫХ РЕЦЕПТОВ ПОЛЬЗОВАТЕЛЕЙ
     @Query("SELECT r FROM Recipe r " +
@@ -85,10 +84,10 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
     Page<Recipe> findUnconfirmedRecipes(Pageable pageable);
 
     //ПОИСК РЕЦЕПТОВ ОПРЕДЕЛЕННОЙ КАТЕГОРИИ
-    @Query("SELECT r FROM Recipe r "+
-            "JOIN FETCH r.author "+
-            "JOIN FETCH r.category "+
-            "WHERE r.category.id = :categoryId "+
+    @Query("SELECT r FROM Recipe r " +
+            "JOIN FETCH r.author " +
+            "JOIN FETCH r.category " +
+            "WHERE r.category.id = :categoryId " +
             "AND r.isConfirmed = true")
     Page<Recipe> findRecipesByCategoryId(Long categoryId, Pageable pageable);
 

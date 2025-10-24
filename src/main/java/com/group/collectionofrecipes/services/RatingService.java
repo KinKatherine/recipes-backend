@@ -23,7 +23,7 @@ import static com.group.collectionofrecipes.utils.ApiConstants.ERROR_USER_NOT_FO
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class RatingService{
+public class RatingService {
 
     private final UserRepository userRepository;
     private final RecipeRepository recipeRepository;
@@ -33,7 +33,7 @@ public class RatingService{
     @Transactional
     public RatingDTO createRating(CreateRatingDTO createRatingDTO, Principal principal) {
 
-        log.info("Запрос на оценку рецепта с id {} пользователем {}",createRatingDTO.getRecipeId(),principal.getName());
+        log.info("Запрос на оценку рецепта с id {} пользователем {}", createRatingDTO.getRecipeId(), principal.getName());
         String username = principal.getName();
         Long recipeId = createRatingDTO.getRecipeId();
 
@@ -67,7 +67,7 @@ public class RatingService{
     @Transactional
     public RatingDTO deleteRating(Long recipeId, Principal principal) {
 
-        log.info("Запрос на удаление оценки рецепта с id {} пользователем {}",recipeId,principal.getName());
+        log.info("Запрос на удаление оценки рецепта с id {} пользователем {}", recipeId, principal.getName());
         String username = principal.getName();
         Rating ratingToDelete = ratingRepository.findByRecipeIdAndUserUsername(recipeId, principal.getName())
                 .orElseThrow(() -> {
@@ -84,11 +84,11 @@ public class RatingService{
     }
 
     @Transactional
-    public RatingDTO updateRating(Long recipeId, Integer estimation, Principal principal){
+    public RatingDTO updateRating(Long recipeId, Integer estimation, Principal principal) {
 
         String username = principal.getName();
         Rating existingRating = ratingRepository.findByRecipeIdAndUserUsername(recipeId, principal.getName())
-                .orElseThrow(() ->{
+                .orElseThrow(() -> {
                     log.warn("Рейтинг для рецепта ID {} от пользователя {} не найден. Невозможно обновить.", recipeId, username);
                     return new EntityNotFoundException("Рейтинг для рецепта ID  от пользователя не найден. Невозможно обновить.");
                 });
@@ -99,7 +99,6 @@ public class RatingService{
         log.info("Обновление рейтинга ID {} от пользователя {}: оценка изменена с {} на {}.", ratingId, username, existingRating.getEstimation(), estimation);
         return ratingMapper.toRatingDto(updatedRating);
     }
-
 
 
 }

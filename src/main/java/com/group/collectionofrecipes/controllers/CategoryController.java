@@ -58,9 +58,9 @@ public class CategoryController {
                                                            @RequestParam(defaultValue = "0") int page,
                                                            Principal principal) {
         log.info("GET /api/v1/category/{}/recipes", categoryId);
-        Page<RecipeDTO> recipeDTOPage = recipeService.getRecipesByCategoryId(categoryId,principal,page);
+        Page<RecipeDTO> recipeDTOPage = recipeService.getRecipesByCategoryId(categoryId, principal, page);
         log.info("GET /api/v1/category/{}/recipes - Успешно возвращено {} рецептов", categoryId, recipeDTOPage.getContent().size());
-        return ApiResponse.success(recipeDTOPage.getContent(), (PaginationInfo)recipeDTOPage);
+        return ApiResponse.success(recipeDTOPage.getContent(), (PaginationInfo) recipeDTOPage);
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
@@ -107,10 +107,7 @@ public class CategoryController {
     }
 
 
-
-
-
-   //ПОКА НЕ НАДО
+    //ПОКА НЕ НАДО
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/api/v1/categories")
     public ApiResponse<CategoryDTO> createCategory(@RequestBody @Valid CreateCategoryDTO createCategoryDTO) {
@@ -135,7 +132,7 @@ public class CategoryController {
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/api/v1/categories/{id}")
     public ApiResponse<CategoryDTO> updateCategory(@PathVariable Long id,
-                                                              @RequestBody @Valid CreateCategoryDTO createCategoryDTO) {
+                                                   @RequestBody @Valid CreateCategoryDTO createCategoryDTO) {
         log.info("PUT /api/v1/categories/admin/update/{}", id);
         log.debug("Новые данные: name={}, description={}",
                 createCategoryDTO.getName(), createCategoryDTO.getDescription());

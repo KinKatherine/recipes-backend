@@ -15,25 +15,25 @@ public class RecipeMapper {
 
     public RecipeDTO toRecipeDto(Recipe recipe) {
 
-         return RecipeDTO.builder()
-                 .id(recipe.getId())
-                 .title(recipe.getTitle())
-                 .description(recipe.getDescription())
-                 .instruction(recipe.getInstruction())
-                 .cookingTime(recipe.getCookingTime())
-                 .image(recipe.getImage())
-                 .countOfServings(recipe.getCountOfServings())
-                 .averageRating(null)
-                 .countOfRatings(null)
-                 .authorId(recipe.getAuthor().getId())
-                 .authorUsername(recipe.getAuthor().getUsername())
-                 .categoryId(recipe.getCategory().getId())
-                 .categoryName(recipe.getCategory().getName())
-                 .commentsCount(0)
-                 .createdAt(recipe.getCreatedAt())
-                 .userRating(null) //? или вообще просто 0
-                 .isFavourite(false)
-                 .build();
+        return RecipeDTO.builder()
+                .id(recipe.getId())
+                .title(recipe.getTitle())
+                .description(recipe.getDescription())
+                .instruction(recipe.getInstruction())
+                .cookingTime(recipe.getCookingTime())
+                .image(recipe.getImage())
+                .countOfServings(recipe.getCountOfServings())
+                .averageRating(null)
+                .countOfRatings(null)
+                .authorId(recipe.getAuthor().getId())
+                .authorUsername(recipe.getAuthor().getUsername())
+                .categoryId(recipe.getCategory().getId())
+                .categoryName(recipe.getCategory().getName())
+                .commentsCount(0)
+                .createdAt(recipe.getCreatedAt())
+                .userRating(null) //? или вообще просто 0
+                .isFavourite(false)
+                .build();
     }
 
 

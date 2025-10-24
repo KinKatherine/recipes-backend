@@ -18,7 +18,7 @@ import java.util.List;
 public class IngredientController {
 
     @GetMapping("/api/v1/measures")
-    public ApiResponse<List<String>> getStringUnits(){
+    public ApiResponse<List<String>> getStringUnits() {
         List<String> stringUnits = Arrays.stream(Unit.values()).map(Unit::getLabel).toList();
         return ApiResponse.success(stringUnits);
     }

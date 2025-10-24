@@ -23,7 +23,7 @@ public class ApiResponse<T> {
     }
 
     public static <T> ApiResponse<T> success() {
-        return new ApiResponse<>(FIELD_SUCCESS, null,null);
+        return new ApiResponse<>(FIELD_SUCCESS, null, null);
     }
 
     public static <T> ApiResponse<T> success(T data, PaginationInfo pagination) {

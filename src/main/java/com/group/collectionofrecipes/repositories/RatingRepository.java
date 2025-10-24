@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface RatingRepository extends JpaRepository<Rating,Long> {
+public interface RatingRepository extends JpaRepository<Rating, Long> {
 
     boolean existsByRecipeIdAndUserUsername(Long recipeId, String username); // метод для проверки оценивал ли пользовватель рецепт
 

@@ -62,8 +62,8 @@ public class SecurityConfig {
 
                         //пользователь
                         //можно все пустить по пермит олл!!
-                        .requestMatchers(HttpMethod.POST,AUTH_REGISTER_URI).permitAll()
-                        .requestMatchers(HttpMethod.POST,AUTH_LOGIN_URI).permitAll()
+                        .requestMatchers(HttpMethod.POST, AUTH_REGISTER_URI).permitAll()
+                        .requestMatchers(HttpMethod.POST, AUTH_LOGIN_URI).permitAll()
                         .requestMatchers(HttpMethod.PUT, EMAIL_VERIFICATION_URI).permitAll()
 
                         //категории
@@ -72,31 +72,31 @@ public class SecurityConfig {
 
                         //комментарии
                         .requestMatchers(HttpMethod.POST, COMMENTS_URI).authenticated()
-                        .requestMatchers(HttpMethod.DELETE,COMMENT_ID_URI).hasAuthority(UserRole.ADMIN.name())
-                        .requestMatchers(HttpMethod.PUT,COMMENT_ID_URI).hasAuthority(UserRole.ADMIN.name()) //не используется
+                        .requestMatchers(HttpMethod.DELETE, COMMENT_ID_URI).hasAuthority(UserRole.ADMIN.name())
+                        .requestMatchers(HttpMethod.PUT, COMMENT_ID_URI).hasAuthority(UserRole.ADMIN.name()) //не используется
 
                         //рейтинг
                         .requestMatchers(HttpMethod.POST, RATINGS_URI).authenticated()
-                        .requestMatchers(HttpMethod.DELETE,RATING_ID_URI).authenticated()
-                        .requestMatchers(HttpMethod.PUT,RATING_ID_URI).authenticated()
+                        .requestMatchers(HttpMethod.DELETE, RATING_ID_URI).authenticated()
+                        .requestMatchers(HttpMethod.PUT, RATING_ID_URI).authenticated()
 
                         //рецепты
-                        .requestMatchers(HttpMethod.GET,RECIPE_OF_THE_DAY_URI).permitAll()
-                        .requestMatchers(HttpMethod.GET,RECIPE_RECENT_URI).permitAll()
-                        .requestMatchers(HttpMethod.GET,RECIPE_ID_URI).permitAll()
-                        .requestMatchers(HttpMethod.GET,RECIPES_FAVOURITE_URI).authenticated()
-                        .requestMatchers(HttpMethod.GET,RECIPES_CONFIRMED_URI).authenticated()
-                        .requestMatchers(HttpMethod.GET,RECIPES_UNCONFIRMED_URI).hasAuthority(UserRole.ADMIN.name())
-                        .requestMatchers(HttpMethod.GET,RECIPES_POPULAR_URI).hasAuthority(UserRole.ADMIN.name())
+                        .requestMatchers(HttpMethod.GET, RECIPE_OF_THE_DAY_URI).permitAll()
+                        .requestMatchers(HttpMethod.GET, RECIPE_RECENT_URI).permitAll()
+                        .requestMatchers(HttpMethod.GET, RECIPE_ID_URI).permitAll()
+                        .requestMatchers(HttpMethod.GET, RECIPES_FAVOURITE_URI).authenticated()
+                        .requestMatchers(HttpMethod.GET, RECIPES_CONFIRMED_URI).authenticated()
+                        .requestMatchers(HttpMethod.GET, RECIPES_UNCONFIRMED_URI).hasAuthority(UserRole.ADMIN.name())
+                        .requestMatchers(HttpMethod.GET, RECIPES_POPULAR_URI).hasAuthority(UserRole.ADMIN.name())
 
 
                         .requestMatchers(HttpMethod.POST, RECIPES_URI).authenticated()
                         .requestMatchers(HttpMethod.DELETE, RECIPE_ID_URI).hasRole(UserRole.ADMIN.name())
                         .requestMatchers(HttpMethod.PUT, RECIPES_URI + "/**").hasRole(UserRole.ADMIN.name())
-                        .requestMatchers(HttpMethod.GET, RECIPES_URI+"/**").hasAnyAuthority("ROLE_ANONYMOUS", UserRole.USER.name(),UserRole.ADMIN.name())
+                        .requestMatchers(HttpMethod.GET, RECIPES_URI + "/**").hasAnyAuthority("ROLE_ANONYMOUS", UserRole.USER.name(), UserRole.ADMIN.name())
                         .requestMatchers(HttpMethod.GET, RECIPES_USER_FAVOURITES_URI).authenticated()
                         .requestMatchers(HttpMethod.GET, RECIPES_USER_ADDED_URI).authenticated()
-                        .requestMatchers(HttpMethod.GET, RECIPE_ID_URI).hasAnyAuthority("ROLE_ANONYMOUS", UserRole.USER.name(),UserRole.ADMIN.name())
+                        .requestMatchers(HttpMethod.GET, RECIPE_ID_URI).hasAnyAuthority("ROLE_ANONYMOUS", UserRole.USER.name(), UserRole.ADMIN.name())
 
 
                         .anyRequest().permitAll()
@@ -117,7 +117,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("*"));//setAllowedOrigins(List.of("http://localhost:4000"))
+        configuration.setAllowedOriginPatterns(List.of("*")); //setAllowedOrigins(List.of("http://localhost:4000"))
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

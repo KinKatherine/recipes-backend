@@ -49,7 +49,7 @@ public class CommentController {
             throw new AccessDeniedException("Недостаточно прав");
         }
         CommentDTO newCommentDTO = commentService.createComment(createCommentDTO, principal);
-        log.info("POST /api/v1/comments - комментарий для рецепта с id {} успешно добавлен",createCommentDTO.getRecipeId());
+        log.info("POST /api/v1/comments - комментарий для рецепта с id {} успешно добавлен", createCommentDTO.getRecipeId());
         return ApiResponse.success(newCommentDTO);
     }
 
@@ -57,25 +57,25 @@ public class CommentController {
     @DeleteMapping("/api/v1/comments/{commentId}")
     public ApiResponse<CommentDTO> deleteComment(@PathVariable Long commentId) {
 
-        log.info("DELETE /api/v1/comments/{}",commentId);
+        log.info("DELETE /api/v1/comments/{}", commentId);
         CommentDTO deletedComment = commentService.deleteComment(commentId);
-        log.info("DELETE /api/v1/comments/{} - комментарий с id {} успешно удален",commentId,commentId);
+        log.info("DELETE /api/v1/comments/{} - комментарий с id {} успешно удален", commentId, commentId);
         return ApiResponse.success(deletedComment);
     }
 
-   //ОБНОВЛЕНИЕ КОММЕНТАРИЯ
+    //ОБНОВЛЕНИЕ КОММЕНТАРИЯ
     //не надо
     @PutMapping("/api/v1/comments/{commentId}")
     public ApiResponse<CommentDTO> updateComment(@PathVariable Long commentId,
                                                  @RequestParam String newText,
                                                  Principal principal) {
-        log.info("PUT /api/v1/comments/{}",commentId);
+        log.info("PUT /api/v1/comments/{}", commentId);
         if (principal == null) {
             log.warn("Попытка обновить комментарий без авторизации.");
             throw new AccessDeniedException("Недостаточно прав");
         }
         CommentDTO updatedCommentDTO = commentService.updateComment(commentId, newText, principal);
-        log.info("PUT /api/v1/comments/{} - текст комментария с id {} изменен на {}",commentId,commentId,newText);
+        log.info("PUT /api/v1/comments/{} - текст комментария с id {} изменен на {}", commentId, commentId, newText);
         return ApiResponse.success(updatedCommentDTO);
     }
 
