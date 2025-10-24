@@ -33,10 +33,16 @@ import static com.group.collectionofrecipes.utils.ApiConstants.COMMENT_ID_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.EMAIL_VERIFICATION_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.RATINGS_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.RATING_ID_URI;
+import static com.group.collectionofrecipes.utils.ApiConstants.RECIPES_CONFIRMED_URI;
+import static com.group.collectionofrecipes.utils.ApiConstants.RECIPES_FAVOURITE_URI;
+import static com.group.collectionofrecipes.utils.ApiConstants.RECIPES_POPULAR_URI;
+import static com.group.collectionofrecipes.utils.ApiConstants.RECIPES_UNCONFIRMED_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.RECIPES_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.RECIPES_USER_ADDED_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.RECIPES_USER_FAVOURITES_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.RECIPE_ID_URI;
+import static com.group.collectionofrecipes.utils.ApiConstants.RECIPE_OF_THE_DAY_URI;
+import static com.group.collectionofrecipes.utils.ApiConstants.RECIPE_RECENT_URI;
 
 @Configuration
 @EnableWebSecurity
@@ -55,6 +61,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auths -> auths
 
                         //пользователь
+                        //можно все пустить по пермит олл!!
                         .requestMatchers(HttpMethod.POST,AUTH_REGISTER_URI).permitAll()
                         .requestMatchers(HttpMethod.POST,AUTH_LOGIN_URI).permitAll()
                         .requestMatchers(HttpMethod.PUT, EMAIL_VERIFICATION_URI).permitAll()
@@ -72,6 +79,16 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, RATINGS_URI).authenticated()
                         .requestMatchers(HttpMethod.DELETE,RATING_ID_URI).authenticated()
                         .requestMatchers(HttpMethod.PUT,RATING_ID_URI).authenticated()
+
+                        //рецепты
+                        .requestMatchers(HttpMethod.GET,RECIPE_OF_THE_DAY_URI).permitAll()
+                        .requestMatchers(HttpMethod.GET,RECIPE_RECENT_URI).permitAll()
+                        .requestMatchers(HttpMethod.GET,RECIPE_ID_URI).permitAll()
+                        .requestMatchers(HttpMethod.GET,RECIPES_FAVOURITE_URI).authenticated()
+                        .requestMatchers(HttpMethod.GET,RECIPES_CONFIRMED_URI).authenticated()
+                        .requestMatchers(HttpMethod.GET,RECIPES_UNCONFIRMED_URI).hasAuthority(UserRole.ADMIN.name())
+                        .requestMatchers(HttpMethod.GET,RECIPES_POPULAR_URI).hasAuthority(UserRole.ADMIN.name())
+
 
                         .requestMatchers(HttpMethod.POST, RECIPES_URI).authenticated()
                         .requestMatchers(HttpMethod.DELETE, RECIPE_ID_URI).hasRole(UserRole.ADMIN.name())

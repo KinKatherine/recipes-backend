@@ -48,44 +48,69 @@ public class RecipeController {
     //ГЛАВНАЯ СТРАНИЦА
     @GetMapping("/api/v1/recipes/recipe-of-the-day")
     public ApiResponse<RecipeDTO> getRecipeOfTheDay() {
+        log.info("GET /api/v1/recipes/recipe-of-the-day");
         RecipeDTO recipeDTO = recipeService.getRecipeOfTheDay();
+        log.info("GET /api/v1/recipes/recipe-of-the-day - рецепт дня с id {} успешно получен",recipeDTO.getId());
         return ApiResponse.success(recipeDTO);
     }
 
     @GetMapping("/api/v1/recipes/recent")
     public ApiResponse<List<RecipeDTO>> getRecentRecipes(Principal principal) {
+        log.info("GET /api/v1/recipes/recent");
         List<RecipeDTO> recentRecipes = recipeService.getLast3AddedRecipes(principal);
+        log.info("GET /api/v1/recipes/recent - {} последние рецепты успешно получены",recentRecipes.size());
         return ApiResponse.success(recentRecipes);
     }
 
     //СТРАНИЦА РЕЦЕПТА
-    @GetMapping("/api/v1/recipes/{id}")
-    public ApiResponse<RecipeDTO> getRecipeById(@PathVariable Long id,Principal principal) {
-        RecipeDTO recipeDTO = recipeService.getRecipeById(id,principal);
+    @GetMapping("/api/v1/recipes/{recipeId}")
+    public ApiResponse<RecipeDTO> getRecipeById(@PathVariable Long recipeId, Principal principal) {
+        log.info("GET /api/v1/recipes/{}",recipeId);
+        RecipeDTO recipeDTO = recipeService.getRecipeById(recipeId,principal);
+        log.info("GET /api/v1/recipes/{} - вся информация успешно загружена",recipeId);
         return ApiResponse.success(recipeDTO);
     }
 
     //СТРАНИЦА ПОЛЬЗОВАТЕЛЯ ИЗБРАННОЕ
     @GetMapping("/api/v1/recipes/favourites")
     public ApiResponse<List<RecipeDTO>> getUserFavouriteRecipes(@RequestParam(defaultValue = "0") int page, Principal principal) {
+        log.info("GET /api/v1/recipes/favourites");
         Page<RecipeDTO> recipePage = recipeService.getFavouriteUserRecipes(principal,page);
+        log.info("GET /api/v1/recipes/favourites - избранные рецепты пользователя {} успешно получены",principal.getName());
         return ApiResponse.success(recipePage.getContent(), getPaginationInfo(recipePage));
     }
-
 
     //СТРАНИЦА ПОЛЬЗОВАТЕЛЯ МОИ ПОДТВЕРЖДЕННЫЕ РЕЦЕПТЫ
     @GetMapping("/api/v1/recipes/my-recipes")
     public ApiResponse<List<RecipeDTO>> getUserAddedConfirmedRecipes(@RequestParam(defaultValue = "0") int page,Principal principal) {
+        log.info("GET /api/v1/recipes/my-recipes");
         Page<RecipeDTO> recipePage = recipeService.getUserAddedConfirmedRecipes(principal,page);
+        log.info("GET /api/v1/recipes/my-recipes - подтвержненные рецепты пользователя {} успешно получены",principal.getName());
         return ApiResponse.success(recipePage.getContent(), getPaginationInfo(recipePage));
     }
 
     //СТРАНИЦА АДМИНИСТРАТОРА НЕПОДТВЕРЖДЕННЫЕ РЕЦЕПТЫ
     @GetMapping("/api/v1/recipes/unconfirmed")
     public ApiResponse<List<RecipeDTO>> getUnconfirmedRecipes(@RequestParam(defaultValue = "0") int page) {
+        log.info("GET /api/v1/recipes/unconfirmed");
         Page<RecipeDTO> recipePage = recipeService.getUnconfirmedRecipes(page);
+        log.info("GET /api/v1/recipes/unconfirmed - неподтвержденные рецепты для админа успешно получены");
         return ApiResponse.success(recipePage.getContent(), getPaginationInfo(recipePage));
     }
+
+    //ПОПУЛЯРНЫЕ РЕЦЕПТЫ
+    @GetMapping("/api/v1/recipes/popular")
+    public ApiResponse<List<RecipeDTO>> getPopularRecipes(Principal principal){
+        log.info("GET /api/v1/recipes/popular");
+        List<RecipeDTO> recipeDTOList =  recipeService.getPopularRecipes(principal);
+        log.info("GET /api/v1/recipes/popular - {}  популярных рецептов успешно получено",recipeDTOList.size());
+        return ApiResponse.success(recipeDTOList);
+    }
+
+
+
+
+
 
     //ОДОБРЕНИЕ РЕЦЕПТА АДМИНОМ
     // добавить сохранение ингредиента
@@ -93,13 +118,6 @@ public class RecipeController {
     public ApiResponse<Object> confirmRecipe(@PathVariable Long id){
         recipeService.confirmRecipe(id);
         return ApiResponse.success();
-    }
-
-
-    @GetMapping("/api/v1/recipes/popular")
-    public ApiResponse<List<RecipeDTO>> getPopularRecipes(Principal principal){
-        List<RecipeDTO> recipeDTOList =  recipeService.getPopularRecipes(principal);
-        return ApiResponse.success(recipeDTOList);
     }
 
 

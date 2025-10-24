@@ -7,7 +7,6 @@ import com.group.collectionofrecipes.dto.ratingdto.RecipeRatingProjection;
 import com.group.collectionofrecipes.dto.recipedto.CreateRecipeDTO;
 import com.group.collectionofrecipes.dto.recipedto.RecipeDTO;
 import com.group.collectionofrecipes.entities.Category;
-import com.group.collectionofrecipes.entities.Rating;
 import com.group.collectionofrecipes.entities.Recipe;
 import com.group.collectionofrecipes.entities.User;
 import com.group.collectionofrecipes.exceptions.SaveFileException;
@@ -67,18 +66,21 @@ public class RecipeService {
     )
     //DONE рецепт дня
     public RecipeDTO getRecipeOfTheDay() {
+        log.info("Запрос на получение рецепта дня");
         LocalDate today = LocalDate.now(ZoneId.of("Europe/Moscow"));
         String dailySeed = today.toString();
 
         Recipe newRecipe = recipeRepository.findRandomRecipeWithSeed(dailySeed)
                 .orElseThrow(() -> new RuntimeException("No recipes found"));
 
+        log.info("Найден рецепт дня");
         return recipeMapper.toRecipeDto(newRecipe);
     }
 
     //DONE 3 последние добавленные
     @Transactional(readOnly = true)
     public List<RecipeDTO> getLast3AddedRecipes(Principal principal) {
+        log.info("Запрос на получение 3 последних добавленных рецептов");
         Pageable topThree = PageRequest.of(0, 3);
         final String currentUsername = (principal != null) ? principal.getName() : null;
 
@@ -87,6 +89,7 @@ public class RecipeService {
         List<RecipeRatingProjection> ratingList = recipeRepository.findAverageRatingsForRecipes(ids);
         Map<Long, Double> ratingMap = getAverageRatingsMap(ratingList);
 
+        log.info("Найдены 3 последние рецепты");
         return recipeList.stream()
                 .map(recipe -> mapRecipeWithRatingAndFavorite(recipe, ratingMap, currentUsername))
                 .toList();
@@ -96,16 +99,15 @@ public class RecipeService {
     //СТРАНИЦА РЕЦЕПТА
     //DONE рецепт по id
     @Transactional(readOnly = true)
-    public RecipeDTO getRecipeById(Long id, Principal principal) {
-        log.info("Запрос на получение рецепта по ID: {}", id);
+    public RecipeDTO getRecipeById(Long recipeId, Principal principal) {
+        log.info("Запрос на получение рецепта по ID: {}", recipeId);
+        Recipe recipe = recipeRepository.findByIdWithMainDetails(recipeId)
+                .orElseThrow(() -> new EntityNotFoundException(ERROR_RECIPE_NOT_FOUND + recipeId));
 
-        Recipe recipe = recipeRepository.findByIdWithMainDetails(id)
-                .orElseThrow(() -> new EntityNotFoundException(ERROR_RECIPE_NOT_FOUND + id));
+        log.info("Рецепт с ID {} успешно найден: {}", recipeId, recipe.getTitle());
+        log.info("Успешно загружен автор и  категория" );
 
-        log.info("Рецепт с ID {} успешно найден: {}", id, recipe.getTitle());
-        log.info("Успешно загружен автор, категория и лист избранных" );
-
-        List<IngredientDTO> ingredientDTOS = recipeRepository.loadIngredientMappersByRecipeId(id).stream()
+        List<IngredientDTO> ingredientDTOS = recipeRepository.loadIngredientMappersByRecipeId(recipeId).stream()
                 .map(i -> {
                     IngredientDTO dto = ingredientMapper.toIngredientDto(i.getIngredient());
                     dto.setAmount(i.getAmount());
@@ -115,13 +117,13 @@ public class RecipeService {
                 .toList();
         log.info("Успешно загружены ингредиенты");
 
-        List<CommentDTO> commentDTOS = recipeRepository.loadCommentsByRecipeId(id).stream()
+        List<CommentDTO> commentDTOS = recipeRepository.loadCommentsByRecipeId(recipeId).stream()
                 .map(commentMapper::toCommentDto)
                 .toList();
         log.info("Успешно загружены комментарии" );
 
         RecipeDTO recipeDTO = recipeMapper.toRecipeDto(recipe);
-        RatingStatsProjection statsProjection = recipeRepository.calculateRatingStats(id);
+        RatingStatsProjection statsProjection = recipeRepository.calculateRatingStats(recipeId);
 
         recipeDTO.setAverageRating(statsProjection.getAverageRating());
         recipeDTO.setCountOfRatings(statsProjection.getCount());
@@ -131,7 +133,7 @@ public class RecipeService {
 
         if(principal!=null){
             String username = principal.getName();
-            ratingRepository.findByRecipeIdAndUserUsername(id, username)
+            ratingRepository.findByRecipeIdAndUserUsername(recipeId, username)
                     .ifPresentOrElse(
                             rating -> recipeDTO.setUserRating(rating.getEstimation()),
                             () -> recipeDTO.setUserRating(0)
@@ -141,6 +143,7 @@ public class RecipeService {
                     favouriteRepository.existsByRecipeIdAndUserUsername(recipe.getId(), username)
             );
         }
+        log.info("Найден рецепт по id {}",recipeId);
         return recipeDTO;
     }
 
@@ -149,6 +152,7 @@ public class RecipeService {
     //DONE
     @Transactional(readOnly = true)
     public Page<RecipeDTO> getFavouriteUserRecipes(Principal principal, int pageNumber) {
+        log.info("Запрос на получение избранный рецептов пользователя");
         if (principal == null) {
             return Page.empty();
         }
@@ -165,6 +169,7 @@ public class RecipeService {
         List<Long> recipeIds = favoriteRecipesPage.getContent().stream().map(Recipe::getId).toList();
         Map<Long, Double> ratingMap = getAverageRatingsMap(recipeRepository.findAverageRatingsForRecipes(recipeIds));
 
+        log.info("Найдено {} избранных  рецептов пользователя",favoriteRecipesPage.getTotalElements());
         return favoriteRecipesPage.map(recipe -> mapRecipeWithRatingAndFavorite(recipe, ratingMap, username));
     }
 
@@ -173,6 +178,7 @@ public class RecipeService {
     //DONE
     @Transactional(readOnly = true)
     public Page<RecipeDTO> getUnconfirmedRecipes(int pageNumber){
+        log.info("Запрос на получение неподтвержденныз рецептов");
         Pageable pageRequest = PageRequest.of(
                 pageNumber,
                 FIXED_PAGE_SIZE,
@@ -181,6 +187,7 @@ public class RecipeService {
 
         Page<Recipe> unconfirmedRecipesPage = recipeRepository.findUnconfirmedRecipes(pageRequest);
 
+        log.info("Найдено {} неподтвержденных рецептов",unconfirmedRecipesPage.getTotalElements());
         return unconfirmedRecipesPage.map(recipe -> {
             RecipeDTO recipeDTO = recipeMapper.toRecipeDto(recipe);
             recipeDTO.setIsFavourite(false);
@@ -191,6 +198,7 @@ public class RecipeService {
 
 
     //ОДОБРЕНИЕ РЕЦЕПТА АДМИНОМ
+    //ДОДЕЛАТЬ
     public void confirmRecipe(Long id) {
         log.info("Запрос подтверждения рецепта  с id: {}", id);
         Recipe recipe = recipeRepository.findById(id)
@@ -199,7 +207,7 @@ public class RecipeService {
                     return new EntityNotFoundException("Неверный id рецепта");
                 });
 
-        recipe.setIsConfirmed(true);
+        recipe.setIsConfirmed(true);//тут еще с ингредиентами понять что делать
         recipeRepository.save(recipe);
         log.info("Рецепт с id {} успешно подтвержден", id);
     }
@@ -209,6 +217,7 @@ public class RecipeService {
     //DONE
     @Transactional(readOnly = true)
     public Page<RecipeDTO> getUserAddedConfirmedRecipes(Principal principal, int pageNumber){
+        log.info("Запрос на получение подтвержденных рецептов пользователя");
         if (principal == null) {
             return Page.empty();
         }
@@ -223,17 +232,17 @@ public class RecipeService {
 
         List<Long> recipeIds = userConfirmedRecipesPage.getContent().stream().map(Recipe::getId).toList();
         Map<Long, Double> ratingMap = getAverageRatingsMap(recipeRepository.findAverageRatingsForRecipes(recipeIds));
+        log.info("Найдено {} подтвержденных рецептов пользователя",userConfirmedRecipesPage.getTotalElements());
 
         return userConfirmedRecipesPage.map(recipe -> mapRecipeWithRatingAndFavorite(recipe, ratingMap, username));
 
     }
 
 
-    //ПОЛУЧЕНИЕ РЕЦЕПТО ОПРЕДЕЛЁННОЙ КАТЕГОРИИ
+    //ПОЛУЧЕНИЕ РЕЦЕПТА ОПРЕДЕЛЁННОЙ КАТЕГОРИИ
     @Transactional(readOnly = true)
     public Page<RecipeDTO> getRecipesByCategoryId(Long categoryId,Principal principal, int pageNumber) {
         log.info("Запрос на получение рецептов для категории с ID: {}", categoryId);
-
         Pageable pageRequest = PageRequest.of(
                 pageNumber,
                 FIXED_PAGE_SIZE
@@ -244,19 +253,21 @@ public class RecipeService {
         Map<Long, Double> ratingMap = getAverageRatingsMap(recipeRepository.findAverageRatingsForRecipes(recipeIds));
 
         final String currentUsername = (principal != null) ? principal.getName() : null;
-
+        log.info("Найдено {} рецептов категории с id {}",recipesCategoryPage.getTotalElements(),categoryId);
         return recipesCategoryPage.map(recipe -> mapRecipeWithRatingAndFavorite(recipe, ratingMap, currentUsername));
     }
 
     @Transactional(readOnly = true)
     public List<RecipeDTO> getPopularRecipes(Principal principal) {
 
+        log.info("Зпрос на получение списка популярных рецептов");
         List<Recipe> recipes = recipeRepository.findTop10ByRatingAndVotesCount();
         List<Long> recipeIds = recipes.stream().map(Recipe::getId).toList();
         Map<Long, Double> ratingMap = getAverageRatingsMap(recipeRepository.findAverageRatingsForRecipes(recipeIds));
 
         final String currentUsername = (principal != null) ? principal.getName() : null;
 
+        log.info("Популярные рецепты найдены");
         return recipes.stream()
                 .map(recipe -> mapRecipeWithRatingAndFavorite(recipe, ratingMap, currentUsername))
                 .toList();
