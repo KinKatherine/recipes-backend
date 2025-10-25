@@ -207,7 +207,7 @@ public class RecipeService {
                     return new EntityNotFoundException("Неверный id рецепта");
                 });
 
-        recipe.setIsConfirmed(true);//тут еще с ингредиентами понять что делать
+        recipe.setIsConfirmed(true); //тут еще с ингредиентами понять что делать
         recipeRepository.save(recipe);
         log.info("Рецепт с id {} успешно подтвержден", id);
     }

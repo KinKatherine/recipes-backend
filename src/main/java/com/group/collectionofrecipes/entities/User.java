@@ -48,6 +48,7 @@ public class User {
     @Column(name = "verification_token", length = 64)
     private String verificationToken;
 
+    @Builder.Default
     @Column(name = "enabled")
     private boolean enabled = false; // По умолчанию пользователь не активирован
 
