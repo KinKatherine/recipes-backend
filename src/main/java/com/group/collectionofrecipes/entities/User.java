@@ -55,6 +55,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
+
     @Column(name = "createdAt")
     private LocalDateTime createdAt;
 
