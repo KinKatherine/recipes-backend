@@ -1,7 +1,5 @@
 package com.group.collectionofrecipes.controllers;
 
-import com.group.collectionofrecipes.dto.recipedto.RecipeDTO;
-import com.group.collectionofrecipes.dto.responsedto.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
