@@ -81,7 +81,7 @@ public class CommentController {
 
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleEntityNotFound(EntityNotFoundException e) {
-        log.error("Обработка исключения EntityNotFoundException: {} ", e.getMessage());
+        log.warn("Обработка исключения EntityNotFoundException: {} ", e.getMessage());
 
         Map<String, Object> response = new HashMap<>();
         response.put(FIELD_STATUS, FIELD_ERROR);
@@ -92,7 +92,7 @@ public class CommentController {
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Map<String, Object>> handleAccessDenied(AccessDeniedException e) {
-        log.error("Обработка исключения AccessDeniedException: {} ", e.getMessage());
+        log.warn("Обработка исключения AccessDeniedException: {} ", e.getMessage());
 
         Map<String, Object> response = new HashMap<>();
         response.put(FIELD_STATUS, FIELD_ERROR);

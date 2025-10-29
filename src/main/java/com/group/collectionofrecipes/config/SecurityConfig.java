@@ -56,7 +56,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable) //отключена csrf
                 .cors(c -> c.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auths -> auths
 

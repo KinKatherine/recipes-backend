@@ -20,11 +20,11 @@ public class CreateRecipeDTO {
     //это для Post - запросов
 
     @NotBlank()
-    @Size(min = 3, max = 50)
+    @Size(min = 3, max = 40)
     private String title;
 
     @NotBlank()
-    @Size(min = 10, max = 1000)
+    @Size(min = 10, max = 150)
     private String description;
 
     @NotBlank()

@@ -91,7 +91,7 @@ public class RatingController {
 
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalState(IllegalStateException e) {
-        log.error("Обработка исключения IllegalStateException: {} ", e.getMessage());
+        log.warn("Обработка исключения IllegalStateException: {} ", e.getMessage());
 
         Map<String, Object> response = new HashMap<>();
         response.put(FIELD_STATUS, FIELD_ERROR);
@@ -102,7 +102,7 @@ public class RatingController {
 
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleEntityNotFound(EntityNotFoundException e) {
-        log.error("Обработка исключения EntityNotFoundException: {} ", e.getMessage());
+        log.warn("Обработка исключения EntityNotFoundException: {} ", e.getMessage());
 
         Map<String, Object> response = new HashMap<>();
         response.put(FIELD_STATUS, FIELD_ERROR);
@@ -113,7 +113,7 @@ public class RatingController {
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Map<String, Object>> handleAccessDenied(AccessDeniedException e) {
-        log.error("Обработка исключения AccessDeniedException: {} ", e.getMessage());
+        log.warn("Обработка исключения AccessDeniedException: {} ", e.getMessage());
 
         Map<String, Object> response = new HashMap<>();
         response.put(FIELD_STATUS, FIELD_ERROR);
@@ -124,7 +124,7 @@ public class RatingController {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException e) {
-        log.error("Обработка исключения IllegalArgumentException: {} ", e.getMessage());
+        log.warn("Обработка исключения IllegalArgumentException: {} ", e.getMessage());
 
         Map<String, Object> response = new HashMap<>();
         response.put(FIELD_STATUS, FIELD_ERROR);

@@ -65,7 +65,7 @@ public class CategoryController {
 
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleEntityNotFound(EntityNotFoundException e) {
-        log.error("Обработка исключения EntityNotFoundException: {} ", e.getMessage());
+        log.warn("Обработка исключения EntityNotFoundException: {} ", e.getMessage());
 
         Map<String, Object> response = new HashMap<>();
         response.put(FIELD_STATUS, FIELD_ERROR);
@@ -76,7 +76,7 @@ public class CategoryController {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException e) {
-        log.error("Обработка исключения IllegalArgumentException: {} ", e.getMessage());
+        log.warn("Обработка исключения IllegalArgumentException: {} ", e.getMessage());
 
         Map<String, Object> response = new HashMap<>();
         response.put(FIELD_STATUS, FIELD_ERROR);
@@ -87,7 +87,7 @@ public class CategoryController {
 
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalState(IllegalStateException e) {
-        log.error("Обработка исключения IllegalStateException: {} ", e.getMessage());
+        log.warn("Обработка исключения IllegalStateException: {} ", e.getMessage());
 
         Map<String, Object> response = new HashMap<>();
         response.put(FIELD_STATUS, FIELD_ERROR);
@@ -98,7 +98,7 @@ public class CategoryController {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGenericException(Exception e) {
-        log.error("Обработка общего исключения: {} ", e.getMessage(), e);
+        log.warn("Обработка общего исключения: {} ", e.getMessage(), e);
 
         Map<String, Object> response = new HashMap<>();
         response.put(FIELD_STATUS, FIELD_ERROR);
