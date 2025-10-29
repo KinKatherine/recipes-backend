@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,12 +48,15 @@ public class RecipeController {
 
     //ГЛАВНАЯ СТРАНИЦА
     @GetMapping("/api/v1/recipes/recipe-of-the-day")
-    public ApiResponse<RecipeDTO> getRecipeOfTheDay() {
-        log.info("GET /api/v1/recipes/recipe-of-the-day");
+    public ApiResponse<RecipeDTO> getRecipeOfTheDay(HttpServletRequest request) {
+        String clientIp = getClientIpAddress(request);
+        log.info("GET /api/v1/recipes/recipe-of-the-day from IP: {}", clientIp);
         RecipeDTO recipeDTO = recipeService.getRecipeOfTheDay();
-        log.info("GET /api/v1/recipes/recipe-of-the-day - рецепт дня с id {} успешно получен", recipeDTO.getId());
+        log.info("GET /api/v1/recipes/recipe-of-the-day - рецепт дня с id {} успешно получен для IP: {}",
+                recipeDTO.getId(), clientIp);
         return ApiResponse.success(recipeDTO);
     }
+
 
     @GetMapping("/api/v1/recipes/recent")
     public ApiResponse<List<RecipeDTO>> getRecentRecipes(Principal principal) {
@@ -151,6 +155,20 @@ public class RecipeController {
                 .hasNext(dataPage.hasNext())
                 .hasPrevious(dataPage.hasPrevious())
                 .build();
+    }
+
+    private String getClientIpAddress(HttpServletRequest request) {
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isEmpty() && !"unknown".equalsIgnoreCase(xForwardedFor)) {
+            return xForwardedFor.split(",")[0].trim();
+        }
+
+        String xRealIp = request.getHeader("X-Real-IP");
+        if (xRealIp != null && !xRealIp.isEmpty() && !"unknown".equalsIgnoreCase(xRealIp)) {
+            return xRealIp;
+        }
+
+        return request.getRemoteAddr();
     }
 
 }
