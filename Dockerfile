@@ -1,22 +1,21 @@
 
 # ЭТАП 1: BUILD (СБОРКА)
-# Используем полный JDK для компиляции и сборки JAR-файла
 FROM maven:3.9.6-eclipse-temurin-21 AS builder
 
 # Устанавливаем рабочую директорию внутри контейнера
 WORKDIR /app
 
-# Копируем файл pom.xml для загрузки зависимостей (используется кэш Docker)
+# Копируем pom.xml и checkstyle.xml
 COPY pom.xml .
+COPY checkstyle.xml .
 
-# Загружаем зависимости (этот шаг кэшируется, если pom.xml не меняется)
+# Загружаем зависимости (этот шаг кэшируется)
 RUN mvn dependency:go-offline
 
 # Копируем исходный код
 COPY src ./src
 
-# Запускаем сборку приложения
-# Флаг -DskipTests пропускает тесты для ускорения сборки образа
+# Запускаем сборку
 RUN mvn package -DskipTests
 
 # ЭТАП 2: RUN (ЗАПУСК)
