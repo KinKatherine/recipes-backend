@@ -98,6 +98,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, RECIPES_USER_ADDED_URI).authenticated()
                         .requestMatchers(HttpMethod.GET, RECIPE_ID_URI).hasAnyAuthority("ROLE_ANONYMOUS", UserRole.USER.name(), UserRole.ADMIN.name())
 
+                        .requestMatchers("/ws/**", "/topic/**").permitAll() // Разрешаем WebSocket всем
 
                         .anyRequest().permitAll()
                 )
