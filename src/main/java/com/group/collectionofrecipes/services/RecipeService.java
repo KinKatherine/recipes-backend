@@ -82,22 +82,22 @@ public class RecipeService {
     @Transactional(readOnly = true)
     public List<RecipeDTO> getLast3AddedRecipes(Principal principal) {
         log.info("Запрос на получение 3 последних добавленных рецептов");
-        try {
-            Pageable topThree = PageRequest.of(0, 3);
-            final String currentUsername = (principal != null) ? principal.getName() : null;
+        Pageable topThree = PageRequest.of(0, 3);
+        final String currentUsername = (principal != null) ? principal.getName() : null;
+        List<Recipe> recipeList = recipeRepository.findLatestRecipes(topThree);
 
-            List<Recipe> recipeList = recipeRepository.findLatestRecipes(topThree);
-            List<Long> ids = recipeList.stream().map(Recipe::getId).toList();
-            List<RecipeRatingProjection> ratingList = recipeRepository.findAverageRatingsForRecipes(ids);
-            Map<Long, Double> ratingMap = getAverageRatingsMap(ratingList);
-
-            log.info("Найдены 3 последние рецепты");
-            return recipeList.stream()
-                    .map(recipe -> mapRecipeWithRatingAndFavorite(recipe, ratingMap, currentUsername))
-                    .toList();
-        } catch (Exception e) {
+        if (recipeList.isEmpty()) {
             throw new NoRecipesFoundException("No recipes found");
         }
+
+        List<Long> ids = recipeList.stream().map(Recipe::getId).toList();
+        List<RecipeRatingProjection> ratingList = recipeRepository.findAverageRatingsForRecipes(ids);
+        Map<Long, Double> ratingMap = getAverageRatingsMap(ratingList);
+
+        log.info("Найдены 3 последние рецепты");
+        return recipeList.stream()
+                .map(recipe -> mapRecipeWithRatingAndFavorite(recipe, ratingMap, currentUsername))
+                .toList();
     }
 
 
