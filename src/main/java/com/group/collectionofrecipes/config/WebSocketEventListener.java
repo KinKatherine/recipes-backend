@@ -1,7 +1,8 @@
 package com.group.collectionofrecipes.config;
 
-import com.group.collectionofrecipes.dto.ChatMessage;
+import com.group.collectionofrecipes.entities.ChatMessage;
 import com.group.collectionofrecipes.enums.MessageType;
+import com.group.collectionofrecipes.services.ChatService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
 public class WebSocketEventListener {
 
     private final SimpMessageSendingOperations messageTemplate;
+    private final ChatService chatService;
 
     @EventListener
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
@@ -26,11 +28,16 @@ public class WebSocketEventListener {
 
         if (username != null) {
             log.info("Пользователь {} вышел", username);
+
             ChatMessage chatMessage = ChatMessage.builder()
+                    .content(username + " вышел из чата")
                     .type(MessageType.LEAVE)
                     .sender(username)
-                    .timestamp(LocalDateTime.now().toString())
+                    .timestamp(LocalDateTime.now())
                     .build();
+
+            chatService.saveMessage(chatMessage);
+
             messageTemplate.convertAndSend("/topic/public", chatMessage);
         }
     }
