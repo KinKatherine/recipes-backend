@@ -4,6 +4,7 @@ import com.group.collectionofrecipes.dto.recipedto.CreateRecipeDTO;
 import com.group.collectionofrecipes.dto.recipedto.RecipeDTO;
 import com.group.collectionofrecipes.dto.responsedto.ApiResponse;
 import com.group.collectionofrecipes.dto.responsedto.PaginationInfo;
+import com.group.collectionofrecipes.exceptions.NoRecipesFoundException;
 import com.group.collectionofrecipes.services.RecipeService;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -144,6 +145,19 @@ public class RecipeController {
         log.warn("Возврат ответа 404 Not Found: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
+
+    @ExceptionHandler(NoRecipesFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNoRecipesFound(NoRecipesFoundException e) {
+        log.warn("Обработка исключения NoRecipesFoundException: {} ", e.getMessage());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put(FIELD_STATUS, FIELD_ERROR);
+        response.put(FIELD_MESSAGE, e.getMessage());
+        log.warn("Возврат ответа 404 Not Found: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+
 
     //УТИЛЬНЫЙ МЕТОД
     private PaginationInfo getPaginationInfo(Page<RecipeDTO> dataPage) {

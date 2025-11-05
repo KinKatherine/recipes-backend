@@ -9,6 +9,7 @@ import com.group.collectionofrecipes.dto.recipedto.RecipeDTO;
 import com.group.collectionofrecipes.entities.Category;
 import com.group.collectionofrecipes.entities.Recipe;
 import com.group.collectionofrecipes.entities.User;
+import com.group.collectionofrecipes.exceptions.NoRecipesFoundException;
 import com.group.collectionofrecipes.exceptions.SaveFileException;
 import com.group.collectionofrecipes.exceptions.SaveRecipeException;
 import com.group.collectionofrecipes.mappers.CommentMapper;
@@ -71,7 +72,7 @@ public class RecipeService {
         String dailySeed = today.toString();
 
         Recipe newRecipe = recipeRepository.findRandomRecipeWithSeed(dailySeed)
-                .orElseThrow(() -> new RuntimeException("No recipes found"));
+                .orElseThrow(() -> new NoRecipesFoundException("No recipes found"));
 
         log.info("Найден рецепт дня");
         return recipeMapper.toRecipeDto(newRecipe);
@@ -81,18 +82,22 @@ public class RecipeService {
     @Transactional(readOnly = true)
     public List<RecipeDTO> getLast3AddedRecipes(Principal principal) {
         log.info("Запрос на получение 3 последних добавленных рецептов");
-        Pageable topThree = PageRequest.of(0, 3);
-        final String currentUsername = (principal != null) ? principal.getName() : null;
+        try {
+            Pageable topThree = PageRequest.of(0, 3);
+            final String currentUsername = (principal != null) ? principal.getName() : null;
 
-        List<Recipe> recipeList = recipeRepository.findLatestRecipes(topThree);
-        List<Long> ids = recipeList.stream().map(Recipe::getId).toList();
-        List<RecipeRatingProjection> ratingList = recipeRepository.findAverageRatingsForRecipes(ids);
-        Map<Long, Double> ratingMap = getAverageRatingsMap(ratingList);
+            List<Recipe> recipeList = recipeRepository.findLatestRecipes(topThree);
+            List<Long> ids = recipeList.stream().map(Recipe::getId).toList();
+            List<RecipeRatingProjection> ratingList = recipeRepository.findAverageRatingsForRecipes(ids);
+            Map<Long, Double> ratingMap = getAverageRatingsMap(ratingList);
 
-        log.info("Найдены 3 последние рецепты");
-        return recipeList.stream()
-                .map(recipe -> mapRecipeWithRatingAndFavorite(recipe, ratingMap, currentUsername))
-                .toList();
+            log.info("Найдены 3 последние рецепты");
+            return recipeList.stream()
+                    .map(recipe -> mapRecipeWithRatingAndFavorite(recipe, ratingMap, currentUsername))
+                    .toList();
+        } catch (Exception e) {
+            throw new NoRecipesFoundException("No recipes found");
+        }
     }
 
 
