@@ -11,10 +11,10 @@ import org.springframework.stereotype.Component;
 public class IngredientMapper {
 
     public IngredientDTO toIngredientDto(Ingredient ingredient) {
-        IngredientDTO dto = new IngredientDTO();
-        dto.setId(ingredient.getId());
-        dto.setName(ingredient.getName());
-        return dto;
+        return IngredientDTO.builder()
+                .id(ingredient.getId())
+                .name(ingredient.getName())
+                .build();
     }
 
     public Ingredient toIngredientEntity(CreateIngredientDTO ingredientDTO) {

@@ -23,16 +23,16 @@ public class IngredientService {
 
     private final IngredientRepository ingredientRepository;
     private final IngredientMapper ingredientMapper;
-    private final RecipeIngredientRepository recipeIngredientRepository;
 
-    public List<IngredientDTO> findAllIngredients() {
+    public List<IngredientDTO> findAllIngredients(String name) {
+
         log.info("Запрос на получение всех игредиентов");
-        List<Ingredient> ingredientList = ingredientRepository.findAll();
+        List<Ingredient> ingredients = (name != null ? ingredientRepository.findByNameContainingIgnoreCase(name) : ingredientRepository.findAll());
         List<IngredientDTO> ingredientDTOList = new ArrayList<>();
-        for (Ingredient i : ingredientList) {
+        for (Ingredient i : ingredients) {
             ingredientDTOList.add(ingredientMapper.toIngredientDto(i));
         }
-        log.info("Найдено {} категорий", ingredientDTOList.size());
+        log.info("Найдено {} ингредиентов", ingredientDTOList.size());
         return ingredientDTOList;
     }
 
