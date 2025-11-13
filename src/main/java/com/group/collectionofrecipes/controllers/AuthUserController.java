@@ -19,8 +19,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.security.Principal;
 import java.util.Map;
 
 import static com.group.collectionofrecipes.utils.ApiConstants.FIELD_MESSAGE;
@@ -89,4 +92,16 @@ public class AuthUserController {
                     .body(new AppError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Ошибка при создании пользователя" + e.getMessage()));
         }
     }
+
+    //todo
+    @PostMapping("/api/v1/avatars")
+    public ResponseEntity<Object> createUserAvatar(@RequestPart("image") MultipartFile image,
+                                                   Principal principal) {
+        log.info("Post  /api/v1/avatars");
+        userService.createUserAvatar(image,principal);
+
+
+        return ResponseEntity.ok("RTT");
+    }
+
 }
