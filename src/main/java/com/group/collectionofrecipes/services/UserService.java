@@ -4,6 +4,7 @@ import com.group.collectionofrecipes.dto.userdto.RegistrationUserDTO;
 import com.group.collectionofrecipes.dto.userdto.UserDTO;
 import com.group.collectionofrecipes.entities.User;
 import com.group.collectionofrecipes.enums.UserRole;
+import com.group.collectionofrecipes.exceptions.InvalidUserInfoException;
 import com.group.collectionofrecipes.mappers.UserMapper;
 import com.group.collectionofrecipes.repositories.UserRepository;
 import jakarta.transaction.Transactional;
@@ -106,10 +107,18 @@ public class UserService implements UserDetailsService {
     }
 
     public boolean isUsernameAvailable(String username) {
-        return userRepository.existsByUsername(username);
+        boolean isValid = username.matches("^[a-zA-Z0-9_-]{3,20}$");
+        if (!isValid) {
+            throw new InvalidUserInfoException("Логин не валиден");
+        }
+        return !userRepository.existsByUsernameIgnoreCase(username);
     }
 
     public boolean isEmailAvailable(String email) {
-        return userRepository.existsByEmail(email);
+        boolean isValid = email.matches("^(?=.{1,254}$)[A-Za-z0-9+_.-]+@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*$");
+        if (!isValid) {
+            throw new InvalidUserInfoException("Почта не валидна");
+        }
+        return !userRepository.existsByEmailIgnoreCase(email);
     }
 }
