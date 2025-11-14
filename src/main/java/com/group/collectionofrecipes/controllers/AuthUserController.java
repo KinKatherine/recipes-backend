@@ -1,5 +1,6 @@
 package com.group.collectionofrecipes.controllers;
 
+import com.group.collectionofrecipes.dto.responsedto.ApiResponse;
 import com.group.collectionofrecipes.dto.userdto.JwtRequest;
 import com.group.collectionofrecipes.dto.userdto.JwtResponse;
 import com.group.collectionofrecipes.dto.userdto.RegistrationUserDTO;
@@ -17,8 +18,10 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
@@ -88,5 +91,19 @@ public class AuthUserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new AppError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Ошибка при создании пользователя" + e.getMessage()));
         }
+    }
+
+
+    @GetMapping("/api/v1/validation/check-username")
+    public ApiResponse<Boolean> checkUsername(@RequestParam String username) {
+        boolean isAvailable = userService.isUsernameAvailable(username);
+        return ApiResponse.success(isAvailable);
+
+    }
+
+    @GetMapping("/api/v1/validation/check-email")
+    public ApiResponse<Boolean> checkEmail(@RequestParam String email) {
+        boolean isAvailable = userService.isEmailAvailable(email);
+        return ApiResponse.success(isAvailable);
     }
 }
