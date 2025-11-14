@@ -104,4 +104,12 @@ public class UserService implements UserDetailsService {
         log.info("Пользователь успешно созранен с ID: {}", savedUser.getId());
         return userMapper.toUserDto(savedUser);
     }
+
+    public boolean isUsernameAvailable(String username) {
+        return userRepository.existsByUsername(username);
+    }
+
+    public boolean isEmailAvailable(String email) {
+        return userRepository.existsByEmail(email);
+    }
 }
