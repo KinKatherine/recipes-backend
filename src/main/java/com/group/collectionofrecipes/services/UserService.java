@@ -91,7 +91,7 @@ public class UserService implements UserDetailsService {
         String token = UUID.randomUUID().toString();
         user.setVerificationToken(token);
 
-        String verificationUrl = "http://localhost:8080/api/v1/verify?token=" + token;
+        String verificationUrl = "https://recipes-api.poma.dev/api/v1/verify?token=" + token;
         Context context = new Context();
         context.setVariable("username", user.getUsername());
         context.setVariable("verificationUrl", verificationUrl);
