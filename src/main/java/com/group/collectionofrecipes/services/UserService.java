@@ -23,6 +23,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.group.collectionofrecipes.utils.ApiConstants.EMAIL_REGEX;
+import static com.group.collectionofrecipes.utils.ApiConstants.USERNAME_REGEX;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -107,7 +110,7 @@ public class UserService implements UserDetailsService {
     }
 
     public boolean isUsernameAvailable(String username) {
-        boolean isValid = username.matches("^[a-zA-Z0-9_-]{3,20}$");
+        boolean isValid = username.matches(USERNAME_REGEX);
         if (!isValid) {
             throw new InvalidUserInfoException("Логин не валиден");
         }
@@ -115,7 +118,7 @@ public class UserService implements UserDetailsService {
     }
 
     public boolean isEmailAvailable(String email) {
-        boolean isValid = email.matches("^(?=.{1,254}$)[A-Za-z0-9+_.-]+@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*$");
+        boolean isValid = email.matches(EMAIL_REGEX);
         if (!isValid) {
             throw new InvalidUserInfoException("Почта не валидна");
         }
