@@ -69,13 +69,13 @@ public class AuthUserController {
                         .body(new AppError(HttpStatus.BAD_REQUEST.value(), "Пароли не совпадают"));
             }
 
-            if (userService.isUsernameAvailable(registrationUserDTO.getUsername())) {
+            if (!userService.isUsernameAvailable(registrationUserDTO.getUsername())) {
                 log.error("Пользователь с таким именем уже существует: {}", registrationUserDTO.getUsername());
                 return ResponseEntity.badRequest()
                         .body(new AppError(HttpStatus.BAD_REQUEST.value(), "Пользователь с таким именем уже существует"));
             }
 
-            if (userService.isEmailAvailable(registrationUserDTO.getEmail())) {
+            if (!userService.isEmailAvailable(registrationUserDTO.getEmail())) {
                 log.error("Пользователь с такой почтой уже существует: {}", registrationUserDTO.getEmail());
                 return ResponseEntity.badRequest()
                         .body(new AppError(HttpStatus.BAD_REQUEST.value(), "Пользователь с такой почтой уже существует"));
