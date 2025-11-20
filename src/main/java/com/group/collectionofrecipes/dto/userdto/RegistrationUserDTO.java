@@ -13,15 +13,15 @@ import lombok.NoArgsConstructor;
 public class RegistrationUserDTO {
 
     @NotBlank()
-    @Size(min = 3, max = 20)
+    @Size(min = 6, max = 16)
     private String username;
 
     @NotBlank()
-    @Size(min = 6)
+    @Size(min = 8, max = 24)
     private String password;
 
     @NotBlank()
-    @Size(min = 6)
+    @Size(min = 8, max = 24)
     private String confirmPassword;
 
     @NotBlank()

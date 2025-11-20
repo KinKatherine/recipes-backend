@@ -12,10 +12,10 @@ import lombok.RequiredArgsConstructor;
 public class JwtRequest {
 
     @NotBlank()
-    @Size(min = 3, max = 50)
+    @Size(min = 6, max = 16)
     private String username;
 
     @NotBlank()
-    @Size(min = 6)
+    @Size(min = 8, max = 24)
     private String password;
 }
