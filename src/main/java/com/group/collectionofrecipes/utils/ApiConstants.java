@@ -37,7 +37,7 @@ public final class ApiConstants {
     public static final String RECIPES_USER_ADDED_URI = "/api/v1/recipes/my-recipes";
     public static final Integer FIXED_PAGE_SIZE = 8;
 
-    public static final String MAIN_USER_AVATAR_NAME = "8f4dff31-33dd-43b2-9c72-656070c1be00_аватарка.jpg";
+    public static final String MAIN_USER_AVATAR_NAME = "dd4aab4d-ba0d-455d-8c9b-2e4f5d2f9124_аватарка.jpg";
 
 
     public static final String EMAIL_REGEX = "^(?=.{1,254}$)[A-Za-z0-9+_.-]+@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?" +
