@@ -124,9 +124,19 @@ public class UserService implements UserDetailsService {
             throw new IllegalArgumentException("Пользователь не зарегистрирован.");
         }
 
-        String userAvatarName = storageService.storeAvatarFile(image);
         String username = principal.getName();
 
+        String lastFilename = userRepository.findPhotoByUsername(username)
+                .orElseThrow(() -> {
+                    log.warn("Пользователь {} не найден", username);
+                    return new EntityNotFoundException(ERROR_USER_NOT_FOUND + username);
+                });
+
+        String userAvatarName = storageService.storeAvatarFile(image);
+
+        if (!lastFilename.equals(MAIN_USER_AVATAR_NAME)) {
+            storageService.deleteAvatarFile(lastFilename);
+        }
         userRepository.updateAvatarByUsername(username, userAvatarName);
     }
 
