@@ -18,8 +18,8 @@ import java.util.UUID;
 @Service
 public class LocalFileStorageService {
 
-    private final Path fileStorageImageLocation = Paths.get("uploads").toAbsolutePath().normalize();
-    private final Path fileStorageAvatarLocation = Paths.get("avatars").toAbsolutePath().normalize();
+    private final Path fileStorageImageLocation = Paths.get("uploads/recipes").toAbsolutePath().normalize();
+    private final Path fileStorageAvatarLocation = Paths.get("uploads/avatars").toAbsolutePath().normalize();
 
     public LocalFileStorageService() {
         try {
