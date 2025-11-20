@@ -14,7 +14,13 @@ public final class ApiConstants {
     //пользователь
     public static final String AUTH_LOGIN_URI = "/api/v1/auth/login";
     public static final String AUTH_REGISTER_URI = "/api/v1/auth/register";
+    public static final String USER_AVATAR_URI = "/api/v1/avatars";
     public static final String EMAIL_VERIFICATION_URI = "/api/v1/verify";
+    public static final String CHECK_USERNAME_URI = "/api/v1/validation/check-username";
+    public static final String CHECK_EMAIL_URI = "/api/v1/validation/check-email";
+
+
+
     //категории
     public static final String CATEGORIES_URI = "/api/v1/categories";
     public static final String CATEGORY_RECIPES_URI = "/api/v1/categories/{categoryId}/recipes";
@@ -44,7 +50,6 @@ public final class ApiConstants {
             "(?:\\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*$";
 
     public static final String USERNAME_REGEX = "^[a-zA-Z0-9_-]{3,20}$";
-
 
 
 

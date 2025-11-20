@@ -28,8 +28,11 @@ import static com.group.collectionofrecipes.utils.ApiConstants.AUTH_LOGIN_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.AUTH_REGISTER_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.CATEGORIES_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.CATEGORY_RECIPES_URI;
+import static com.group.collectionofrecipes.utils.ApiConstants.CHECK_EMAIL_URI;
+import static com.group.collectionofrecipes.utils.ApiConstants.CHECK_USERNAME_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.COMMENTS_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.COMMENT_ID_URI;
+import static com.group.collectionofrecipes.utils.ApiConstants.USER_AVATAR_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.EMAIL_VERIFICATION_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.RATINGS_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.RATING_ID_URI;
@@ -65,6 +68,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, AUTH_REGISTER_URI).permitAll()
                         .requestMatchers(HttpMethod.POST, AUTH_LOGIN_URI).permitAll()
                         .requestMatchers(HttpMethod.PUT, EMAIL_VERIFICATION_URI).permitAll()
+                        .requestMatchers(HttpMethod.POST, USER_AVATAR_URI).authenticated()
+                        .requestMatchers(HttpMethod.DELETE, USER_AVATAR_URI).authenticated()
+                        .requestMatchers(HttpMethod.GET, CHECK_USERNAME_URI).permitAll()
+                        .requestMatchers(HttpMethod.GET, CHECK_EMAIL_URI).permitAll()
 
                         //категории
                         .requestMatchers(HttpMethod.GET, CATEGORIES_URI).permitAll()
