@@ -1,6 +1,7 @@
 package com.group.collectionofrecipes.services;
 
 import com.group.collectionofrecipes.exceptions.CreationDirectoryException;
+import com.group.collectionofrecipes.exceptions.DeleteFileException;
 import com.group.collectionofrecipes.exceptions.SaveFileException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,19 +18,30 @@ import java.util.UUID;
 @Service
 public class LocalFileStorageService {
 
-    private final Path fileStorageLocation = Paths.get("uploads").toAbsolutePath().normalize();
+    private final Path fileStorageImageLocation = Paths.get("uploads").toAbsolutePath().normalize();
+    private final Path fileStorageAvatarLocation = Paths.get("avatars").toAbsolutePath().normalize();
 
     public LocalFileStorageService() {
         try {
-            Files.createDirectories(this.fileStorageLocation);
-            log.info("Директория для хранения файлов создана: {}", this.fileStorageLocation);
+            Files.createDirectories(this.fileStorageImageLocation);
+            log.info("Директория для хранения файлов рецептов создана: {}", this.fileStorageImageLocation);
+            Files.createDirectories(this.fileStorageAvatarLocation);
+            log.info("Директория для хранения файлов аватаров создана: {}", this.fileStorageAvatarLocation);
         } catch (Exception ex) {
-            log.error("Ошибка при создании директории для хранения файлов: {}", this.fileStorageLocation, ex);
+            log.error("Ошибка при создании директории для хранения файлов", ex);
             throw new CreationDirectoryException("Could not create the directory to store uploaded files.");
         }
     }
 
-    public String storeFile(MultipartFile file) {
+    public String storeAvatarFile(MultipartFile file) {
+        return storeFile(file, fileStorageAvatarLocation);
+    }
+
+    public String storeImageFile(MultipartFile file) {
+        return storeFile(file, fileStorageImageLocation);
+    }
+
+    private String storeFile(MultipartFile file, Path location) {
         String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
         log.debug("Начало сохранения файла: {}", fileName);
 
@@ -39,7 +51,7 @@ public class LocalFileStorageService {
                 throw new SaveFileException("Invalid file name: " + fileName);
             }
 
-            Path targetLocation = this.fileStorageLocation.resolve(fileName);
+            Path targetLocation = location.resolve(fileName);
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
             log.info("Файл успешно сохранен: {}", fileName);
             return fileName;
@@ -50,7 +62,39 @@ public class LocalFileStorageService {
         }
     }
 
-    public void deleteFile(String file) {
-        //реализовать
+    public void deleteAvatarFile(String fileName) {
+        deleteFile(fileName, fileStorageAvatarLocation);
+    }
+
+    public void deleteImageFile(String fileName) {
+        deleteFile(fileName, fileStorageImageLocation);
+    }
+
+    private void deleteFile(String fileName, Path location) {
+        log.debug("Попытка удаления файла: {}", fileName);
+
+        try {
+            if (fileName == null || fileName.trim().isEmpty()) {
+                log.warn("Передано пустое имя файла для удаления");
+                return;
+            }
+
+            Path filePath = location.resolve(fileName).normalize();
+
+            if (!filePath.startsWith(location)) {
+                log.warn("Попытка удаления файла вне целевой директории: {}", fileName);
+                throw new DeleteFileException("Invalid file path: " + fileName);
+            }
+
+            if (Files.exists(filePath)) {
+                Files.delete(filePath);
+                log.info("Файл успешно удален: {}", fileName);
+            } else {
+                log.warn("Файл не найден для удаления: {}", fileName);
+            }
+
+        } catch (IOException ex) {
+            log.error("Ошибка при удалении файла: {}", fileName, ex);
+        }
     }
 }

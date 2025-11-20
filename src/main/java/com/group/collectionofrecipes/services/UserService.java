@@ -7,6 +7,7 @@ import com.group.collectionofrecipes.enums.UserRole;
 import com.group.collectionofrecipes.exceptions.InvalidUserInfoException;
 import com.group.collectionofrecipes.mappers.UserMapper;
 import com.group.collectionofrecipes.repositories.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,12 +17,17 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.thymeleaf.context.Context;
 
+import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import static com.group.collectionofrecipes.utils.ApiConstants.ERROR_USER_NOT_FOUND;
+import static com.group.collectionofrecipes.utils.ApiConstants.MAIN_USER_AVATAR_NAME;
 
 import static com.group.collectionofrecipes.utils.ApiConstants.EMAIL_REGEX;
 import static com.group.collectionofrecipes.utils.ApiConstants.USERNAME_REGEX;
@@ -34,6 +40,7 @@ public class UserService implements UserDetailsService {
     private final UserMapper userMapper;
     private final MailSenderService mailSenderService;
     private final PasswordEncoder passwordEncoder;
+    private final LocalFileStorageService storageService;
 
     public Optional<User> findByUsername(String username) {
         log.debug("Поиск пользователя по username: {}", username);
@@ -90,6 +97,7 @@ public class UserService implements UserDetailsService {
         user.setEnabled(false);
         String token = UUID.randomUUID().toString();
         user.setVerificationToken(token);
+        user.setPhoto(MAIN_USER_AVATAR_NAME);
 
         String verificationUrl = "https://recipes-api.poma.dev/api/v1/verify?token=" + token;
         Context context = new Context();
@@ -108,6 +116,35 @@ public class UserService implements UserDetailsService {
         log.info("Пользователь успешно созранен с ID: {}", savedUser.getId());
         return userMapper.toUserDto(savedUser);
     }
+
+    @Transactional
+    public void createUserAvatar(MultipartFile image, Principal principal) {
+        if (principal == null) {
+            log.error("Пользователь не зарегистрирован.");
+            throw new IllegalArgumentException("Пользователь не зарегистрирован.");
+        }
+
+        String userAvatarName = storageService.storeAvatarFile(image);
+        String username = principal.getName();
+
+        userRepository.updateAvatarByUsername(username, userAvatarName);
+    }
+
+    @Transactional
+    public void deleteUserAvatar(Principal principal) {
+        if (principal == null) {
+            log.error("Пользователь не зарегистрирован.");
+            throw new IllegalArgumentException("Пользователь не зарегистрирован.");
+        }
+        String filename = userRepository.findPhotoByUsername(principal.getName()).orElseThrow(() -> {
+            log.warn("Пользователь {} не найден при попытке удалить аватарку.", principal.getName());
+            return new EntityNotFoundException(ERROR_USER_NOT_FOUND + principal.getName());
+        });
+        storageService.deleteAvatarFile(filename);
+        String username = principal.getName();
+        userRepository.updateAvatarByUsername(username, MAIN_USER_AVATAR_NAME);
+    }
+
 
     public boolean isUsernameAvailable(String username) {
         boolean isValid = username.matches(USERNAME_REGEX);
