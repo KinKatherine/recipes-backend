@@ -16,6 +16,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByVerificationToken(String token);
 
+    boolean existsByUsernameIgnoreCase(String username);
+
+    boolean existsByEmailIgnoreCase(String email);
+
     @Modifying
     @Query("UPDATE User u SET u.photo = :avatarName WHERE u.username = :username")
     void updateAvatarByUsername(String username, String avatarName);

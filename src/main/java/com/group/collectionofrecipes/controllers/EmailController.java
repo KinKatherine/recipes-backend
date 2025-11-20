@@ -6,11 +6,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "Verification")
+@Tag(name = "Email Verification")
 @RestController
 @RequiredArgsConstructor
 @Slf4j
@@ -18,7 +18,7 @@ public class EmailController {
 
     private final UserService userService;
 
-    @PutMapping("/api/v1/verify")
+    @GetMapping("/api/v1/verify")
     public ResponseEntity<String> verifyEmail(@RequestParam String token) {
         log.info("Get  /api/v1/verify с токеном: {}", token);
         try {

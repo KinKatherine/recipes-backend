@@ -4,6 +4,7 @@ import com.group.collectionofrecipes.dto.userdto.RegistrationUserDTO;
 import com.group.collectionofrecipes.dto.userdto.UserDTO;
 import com.group.collectionofrecipes.entities.User;
 import com.group.collectionofrecipes.enums.UserRole;
+import com.group.collectionofrecipes.exceptions.InvalidUserInfoException;
 import com.group.collectionofrecipes.mappers.UserMapper;
 import com.group.collectionofrecipes.repositories.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -27,6 +28,9 @@ import java.util.UUID;
 
 import static com.group.collectionofrecipes.utils.ApiConstants.ERROR_USER_NOT_FOUND;
 import static com.group.collectionofrecipes.utils.ApiConstants.MAIN_USER_AVATAR_NAME;
+
+import static com.group.collectionofrecipes.utils.ApiConstants.EMAIL_REGEX;
+import static com.group.collectionofrecipes.utils.ApiConstants.USERNAME_REGEX;
 
 @Service
 @RequiredArgsConstructor
@@ -95,7 +99,7 @@ public class UserService implements UserDetailsService {
         user.setVerificationToken(token);
         user.setPhoto(MAIN_USER_AVATAR_NAME);
 
-        String verificationUrl = "http://localhost:8080/api/v1/verify?token=" + token;
+        String verificationUrl = "https://recipes-api.poma.dev/api/v1/verify?token=" + token;
         Context context = new Context();
         context.setVariable("username", user.getUsername());
         context.setVariable("verificationUrl", verificationUrl);
@@ -141,4 +145,20 @@ public class UserService implements UserDetailsService {
         userRepository.updateAvatarByUsername(username, MAIN_USER_AVATAR_NAME);
     }
 
+
+    public boolean isUsernameAvailable(String username) {
+        boolean isValid = username.matches(USERNAME_REGEX);
+        if (!isValid) {
+            throw new InvalidUserInfoException("Логин не валиден");
+        }
+        return !userRepository.existsByUsernameIgnoreCase(username);
+    }
+
+    public boolean isEmailAvailable(String email) {
+        boolean isValid = email.matches(EMAIL_REGEX);
+        if (!isValid) {
+            throw new InvalidUserInfoException("Почта не валидна");
+        }
+        return !userRepository.existsByEmailIgnoreCase(email);
+    }
 }

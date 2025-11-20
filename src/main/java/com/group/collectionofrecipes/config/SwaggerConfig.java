@@ -15,7 +15,7 @@ public class SwaggerConfig {
     public OpenAPI api() {
         return new OpenAPI()
                 .servers(List.of(
-                                new Server().url("http://localhost:8080")
+                                new Server().url("https://recipes-api.poma.dev")
                         )
                 )
                 .info(
