@@ -4,6 +4,7 @@ import com.group.collectionofrecipes.dto.chatdto.ChatMessageDTO;
 import com.group.collectionofrecipes.dto.chatdto.SendMessageDTO;
 import com.group.collectionofrecipes.entities.ChatMessage;
 import com.group.collectionofrecipes.entities.User;
+import com.group.collectionofrecipes.mappers.MessageMapper;
 import com.group.collectionofrecipes.repositories.ChatMessageRepository;
 import com.group.collectionofrecipes.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,8 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +25,7 @@ public class ChatService {
     private final UserRepository userRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final LocalFileStorageService fileStorageService;
+    private final MessageMapper messageMapper;
 
     @Transactional
     public ChatMessageDTO   sendMessage(String senderEmail, SendMessageDTO messageDTO) {
@@ -44,7 +46,7 @@ public class ChatService {
             message.setRecipient(recipient);
             
             ChatMessage savedMsg = chatMessageRepository.save(message);
-            ChatMessageDTO responseDTO = mapToDTO(savedMsg);
+            ChatMessageDTO responseDTO = messageMapper.toChatMessageDTO(savedMsg);
 
             messagingTemplate.convertAndSendToUser(
                     recipient.getEmail(), 
@@ -62,7 +64,7 @@ public class ChatService {
             // Общее
             message.setRecipient(null);
             ChatMessage savedMsg = chatMessageRepository.save(message);
-            ChatMessageDTO responseDTO = mapToDTO(savedMsg);
+            ChatMessageDTO responseDTO = messageMapper.toChatMessageDTO(savedMsg);
 
             messagingTemplate.convertAndSend("/topic/public", responseDTO);
             return responseDTO;
@@ -82,7 +84,12 @@ public class ChatService {
         } else {
              messages = chatMessageRepository.findPublicMessagesAfterId(fromId);
         }
-        return messages.stream().map(this::mapToDTO).collect(Collectors.toList());
+
+        List<ChatMessageDTO> messageDTOS = new ArrayList<>();
+        for (ChatMessage message : messages) {
+            messageDTOS.add(messageMapper.toChatMessageDTO(message));
+        }
+        return messageDTOS;
     }
 
     @Transactional(readOnly = true)
@@ -91,19 +98,11 @@ public class ChatService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         List<ChatMessage> messages = chatMessageRepository.findConversation(currentUser.getId(), otherUserId);
-        
-        return messages.stream().map(this::mapToDTO).collect(Collectors.toList());
-    }
 
-    private ChatMessageDTO mapToDTO(ChatMessage msg) {
-        return ChatMessageDTO.builder()
-                .id(msg.getId())
-                .content(msg.getContent())
-                .senderEmail(msg.getSender().getEmail())
-                .senderUsername(msg.getSender().getUsername())
-                .recipientEmail(msg.getRecipient() != null ? msg.getRecipient().getEmail() : null)
-                .sentAt(msg.getSentAt())
-                .attachmentUrl(msg.getAttachmentUrl())
-                .build();
+        List<ChatMessageDTO> messageDTOS = new ArrayList<>();
+        for (ChatMessage message : messages) {
+            messageDTOS.add(messageMapper.toChatMessageDTO(message));
+        }
+        return messageDTOS;
     }
 }

@@ -3,6 +3,7 @@ package com.group.collectionofrecipes.controllers;
 import com.group.collectionofrecipes.dto.chatdto.ChatMessageDTO;
 import com.group.collectionofrecipes.dto.chatdto.SendMessageDTO;
 import com.group.collectionofrecipes.services.ChatService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -15,6 +16,7 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
+@Tag(name = "Chat")
 @Slf4j
 @RestController
 @RequestMapping("/chat")
