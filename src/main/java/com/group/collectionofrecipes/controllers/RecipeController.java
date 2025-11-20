@@ -4,6 +4,7 @@ import com.group.collectionofrecipes.dto.recipedto.CreateRecipeDTO;
 import com.group.collectionofrecipes.dto.recipedto.RecipeDTO;
 import com.group.collectionofrecipes.dto.responsedto.ApiResponse;
 import com.group.collectionofrecipes.dto.responsedto.PaginationInfo;
+import com.group.collectionofrecipes.exceptions.DeleteFileException;
 import com.group.collectionofrecipes.exceptions.NoRecipesFoundException;
 import com.group.collectionofrecipes.services.RecipeService;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -122,7 +123,6 @@ public class RecipeController {
     }
 
 
-    //todo
     @PostMapping("/api/v1/recipes")
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
             content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
@@ -145,6 +145,17 @@ public class RecipeController {
         response.put(FIELD_MESSAGE, e.getMessage());
         log.warn("Возврат ответа 404 Not Found: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(DeleteFileException.class)
+    public ResponseEntity<Map<String, Object>> handleDeleteFile(DeleteFileException e) {
+        log.warn("Обработка исключения DeleteFileException: {} ", e.getMessage());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put(FIELD_STATUS, FIELD_ERROR);
+        response.put(FIELD_MESSAGE, e.getMessage());
+        log.warn("Возврат ответа 400 Not Found: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @ExceptionHandler(NoRecipesFoundException.class)

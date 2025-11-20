@@ -6,6 +6,7 @@ import com.group.collectionofrecipes.entities.User;
 import com.group.collectionofrecipes.enums.UserRole;
 import com.group.collectionofrecipes.mappers.UserMapper;
 import com.group.collectionofrecipes.repositories.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.group.collectionofrecipes.utils.ApiConstants.ERROR_USER_NOT_FOUND;
+import static com.group.collectionofrecipes.utils.ApiConstants.MAIN_USER_AVATAR_NAME;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -32,6 +36,7 @@ public class UserService implements UserDetailsService {
     private final UserMapper userMapper;
     private final MailSenderService mailSenderService;
     private final PasswordEncoder passwordEncoder;
+    private final LocalFileStorageService storageService;
 
     public Optional<User> findByUsername(String username) {
         log.debug("Поиск пользователя по username: {}", username);
@@ -88,6 +93,7 @@ public class UserService implements UserDetailsService {
         user.setEnabled(false);
         String token = UUID.randomUUID().toString();
         user.setVerificationToken(token);
+        user.setPhoto(MAIN_USER_AVATAR_NAME);
 
         String verificationUrl = "http://localhost:8080/api/v1/verify?token=" + token;
         Context context = new Context();
@@ -107,7 +113,32 @@ public class UserService implements UserDetailsService {
         return userMapper.toUserDto(savedUser);
     }
 
-    //todo
+    @Transactional
     public void createUserAvatar(MultipartFile image, Principal principal) {
+        if (principal == null) {
+            log.error("Пользователь не зарегистрирован.");
+            throw new IllegalArgumentException("Пользователь не зарегистрирован.");
+        }
+
+        String userAvatarName = storageService.storeAvatarFile(image);
+        String username = principal.getName();
+
+        userRepository.updateAvatarByUsername(username, userAvatarName);
     }
+
+    @Transactional
+    public void deleteUserAvatar(Principal principal) {
+        if (principal == null) {
+            log.error("Пользователь не зарегистрирован.");
+            throw new IllegalArgumentException("Пользователь не зарегистрирован.");
+        }
+        String filename = userRepository.findPhotoByUsername(principal.getName()).orElseThrow(() -> {
+            log.warn("Пользователь {} не найден при попытке удалить аватарку.", principal.getName());
+            return new EntityNotFoundException(ERROR_USER_NOT_FOUND + principal.getName());
+        });
+        storageService.deleteAvatarFile(filename);
+        String username = principal.getName();
+        userRepository.updateAvatarByUsername(username, MAIN_USER_AVATAR_NAME);
+    }
+
 }

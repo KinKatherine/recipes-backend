@@ -1,5 +1,6 @@
 package com.group.collectionofrecipes.controllers;
 
+import com.group.collectionofrecipes.dto.responsedto.ApiResponse;
 import com.group.collectionofrecipes.dto.userdto.JwtRequest;
 import com.group.collectionofrecipes.dto.userdto.JwtResponse;
 import com.group.collectionofrecipes.dto.userdto.RegistrationUserDTO;
@@ -8,6 +9,7 @@ import com.group.collectionofrecipes.exceptions.AppError;
 import com.group.collectionofrecipes.services.UserService;
 import com.group.collectionofrecipes.utils.JwtTokenUtils;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +19,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -24,8 +28,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.Map;
 
+import static com.group.collectionofrecipes.utils.ApiConstants.FIELD_ERROR;
 import static com.group.collectionofrecipes.utils.ApiConstants.FIELD_MESSAGE;
 import static com.group.collectionofrecipes.utils.ApiConstants.FIELD_STATUS;
 import static com.group.collectionofrecipes.utils.ApiConstants.FIELD_SUCCESS;
@@ -93,15 +99,41 @@ public class AuthUserController {
         }
     }
 
-    //todo
     @PostMapping("/api/v1/avatars")
-    public ResponseEntity<Object> createUserAvatar(@RequestPart("image") MultipartFile image,
-                                                   Principal principal) {
+    public ApiResponse<String> createUserAvatar(@RequestPart("image") MultipartFile image,
+                                                Principal principal) {
         log.info("Post  /api/v1/avatars");
-        userService.createUserAvatar(image,principal);
+        userService.createUserAvatar(image, principal);
+        log.info("Аватарка пользователя {} успешно создана", principal.getName());
+        return ApiResponse.success();
+    }
 
+    @DeleteMapping("/api/v1/avatars")
+    public ApiResponse<String> deleteUserAvatar(Principal principal) {
+        log.info("Post  /api/v1/avatars");
+        userService.deleteUserAvatar(principal);
+        log.info("Аватарка пользователя {} успешно удалена", principal.getName());
+        return ApiResponse.success();
+    }
 
-        return ResponseEntity.ok("RTT");
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException e) {
+        log.warn("Обработка исключения IllegalArgumentException: {} ", e.getMessage());
+        Map<String, Object> response = new HashMap<>();
+        response.put(FIELD_STATUS, FIELD_ERROR);
+        response.put(FIELD_MESSAGE, e.getMessage());
+        log.warn("Возврат ответа 400 Bad Request: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleIEntityNotFound(EntityNotFoundException e) {
+        log.warn("Обработка исключения EntityNotFoundException: {} ", e.getMessage());
+        Map<String, Object> response = new HashMap<>();
+        response.put(FIELD_STATUS, FIELD_ERROR);
+        response.put(FIELD_MESSAGE, e.getMessage());
+        log.warn("Возврат ответа 404 Not found: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
 }

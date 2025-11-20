@@ -308,7 +308,7 @@ public class RecipeService {
         Recipe savedRecipe;
 
         try {
-            imageName = fileStorageService.storeFile(image);
+            imageName = fileStorageService.storeImageFile(image);
             log.info("Изображение для рецепта {} успешно сохранено: {}", createRecipeDTO.getTitle(), imageName);
 
             Category category = categoryRepository.findById(createRecipeDTO.getCategoryId()).orElseThrow(()
@@ -326,7 +326,7 @@ public class RecipeService {
             throw new SaveRecipeException("Failed to save recipe image: " + e.getMessage());
         } catch (Exception dbException) {
             if (imageName != null) {
-                fileStorageService.deleteFile(imageName);
+                fileStorageService.deleteImageFile(imageName);
                 log.warn("Откат: Файл {} удалён из-за ошибки транзакции БД.", imageName);
             }
             throw dbException;
