@@ -137,7 +137,7 @@ public class RecipeController {
 
 
     @GetMapping("/api/v1/recipes/title")
-    public ApiResponse<List<RecipeDTO>> findRecipeByTitle(@RequestParam(name = "title", required = true) String title,
+    public ApiResponse<List<RecipeDTO>> findRecipeByTitle(@RequestParam(name = "title") String title,
                                                           Principal principal) {
         log.info("GET /api/v1/recipes/title {}", title);
         List<RecipeDTO> recipeDTOList = recipeService.findRecipeByTitle(title, principal);
