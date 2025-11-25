@@ -136,6 +136,16 @@ public class RecipeController {
     }
 
 
+    @GetMapping("/api/v1/recipes/title")
+    public ApiResponse<List<RecipeDTO>> findRecipeByTitle(@RequestParam(name = "title", required = true) String title,
+                                                          Principal principal) {
+        log.info("GET /api/v1/recipes/title {}", title);
+        List<RecipeDTO> recipeDTOList = recipeService.findRecipeByTitle(title, principal);
+        log.info("GET /api/v1/recipes/title {} - найдено {} рецептов", title, recipeDTOList.size());
+        return ApiResponse.success(recipeDTOList);
+    }
+
+
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleEntityNotFound(EntityNotFoundException e) {
         log.warn("Обработка исключения EntityNotFoundException: {} ", e.getMessage());

@@ -374,4 +374,18 @@ public class RecipeService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public List<RecipeDTO> findRecipeByTitle(String title, Principal principal) {
+
+        List<Recipe> recipes = recipeRepository.findByTitleContainingIgnoreCase(title);
+        final String currentUsername = (principal != null) ? principal.getName() : null;
+        List<Long> ids = recipes.stream().map(Recipe::getId).toList();
+        List<RecipeRatingProjection> ratingList = recipeRepository.findAverageRatingsForRecipes(ids);
+        Map<Long, Double> ratingMap = getAverageRatingsMap(ratingList);
+
+        log.info("Найдено {} рецептов  по названию {}", recipes.size(), title);
+        return recipes.stream()
+                .map(recipe -> mapRecipeWithRatingAndFavorite(recipe, ratingMap, currentUsername))
+                .toList();
+    }
 }

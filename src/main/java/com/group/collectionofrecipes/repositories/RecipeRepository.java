@@ -99,4 +99,14 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
             "GROUP BY r " +
             "ORDER BY COALESCE(AVG(rat.estimation), 0) DESC, COUNT(rat.id) DESC")
     List<Recipe> findTop10ByRatingAndVotesCount();
+
+
+    //ПОИСК РЕЦЕПТА ПО ВХОЖНЕИЮ НАЗВАНИЯ
+    @Query("SELECT r FROM Recipe r " +
+            "JOIN FETCH r.author " +
+            "JOIN FETCH r.category " +
+            "LEFT JOIN FETCH r.favoriteBy " +
+            "WHERE r.isConfirmed = true " +
+            "AND LOWER(r.title) LIKE LOWER(CONCAT('%', :title, '%'))")
+    List<Recipe> findByTitleContainingIgnoreCase(String title);
 }
