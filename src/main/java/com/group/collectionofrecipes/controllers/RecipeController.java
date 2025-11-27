@@ -1,5 +1,6 @@
 package com.group.collectionofrecipes.controllers;
 
+import com.group.collectionofrecipes.dto.ingredientdto.CreateIngredientDTO;
 import com.group.collectionofrecipes.dto.recipedto.CreateRecipeDTO;
 import com.group.collectionofrecipes.dto.recipedto.RecipeDTO;
 import com.group.collectionofrecipes.dto.responsedto.ApiResponse;
@@ -130,9 +131,12 @@ public class RecipeController {
     )
     public ApiResponse<RecipeDTO> createRecipe(@RequestPart("recipe") @Valid CreateRecipeDTO createRecipeDTO,
                                                @RequestPart("image") MultipartFile image,
+                                               @RequestPart("ingredients") @Valid List<CreateIngredientDTO> ingredientDTOS,
                                                Principal principal) {
-        RecipeDTO recipeDTO = recipeService.saveRecipe(createRecipeDTO, image, principal);
-        return ApiResponse.success(recipeDTO);
+        log.info("GET /api/v1/recipes");
+        RecipeDTO recipeDTO =  recipeService.saveRecipe(createRecipeDTO, image, ingredientDTOS, principal);
+        log.info("GET /api/v1/recipes -создан рецепт с id {}", recipeDTO.getId());
+        return ApiResponse.success();
     }
 
 

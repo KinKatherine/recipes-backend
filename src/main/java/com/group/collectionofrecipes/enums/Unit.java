@@ -1,5 +1,7 @@
 package com.group.collectionofrecipes.enums;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 public enum Unit {
 
     GRAM("гр."),
@@ -22,5 +24,18 @@ public enum Unit {
 
     public String getLabel() {
         return label;
+    }
+
+    @JsonCreator
+    public static Unit findByLabel(String label) {
+        if (label == null) {
+            return null;
+        }
+        for (Unit unit : Unit.values()) {
+            if (unit.label.equalsIgnoreCase(label) || unit.name().equalsIgnoreCase(label)) {
+                return unit;
+            }
+        }
+        throw new IllegalArgumentException("Неизвестная единица измерения: " + label);
     }
 }

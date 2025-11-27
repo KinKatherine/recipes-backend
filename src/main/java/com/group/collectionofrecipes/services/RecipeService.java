@@ -1,14 +1,18 @@
 package com.group.collectionofrecipes.services;
 
 import com.group.collectionofrecipes.dto.commentdto.CommentDTO;
+import com.group.collectionofrecipes.dto.ingredientdto.CreateIngredientDTO;
 import com.group.collectionofrecipes.dto.ingredientdto.IngredientDTO;
 import com.group.collectionofrecipes.dto.ratingdto.RatingStatsProjection;
 import com.group.collectionofrecipes.dto.ratingdto.RecipeRatingProjection;
 import com.group.collectionofrecipes.dto.recipedto.CreateRecipeDTO;
 import com.group.collectionofrecipes.dto.recipedto.RecipeDTO;
 import com.group.collectionofrecipes.entities.Category;
+import com.group.collectionofrecipes.entities.Ingredient;
 import com.group.collectionofrecipes.entities.Recipe;
+import com.group.collectionofrecipes.entities.RecipeIngredientMapping;
 import com.group.collectionofrecipes.entities.User;
+import com.group.collectionofrecipes.enums.Unit;
 import com.group.collectionofrecipes.exceptions.NoRecipesFoundException;
 import com.group.collectionofrecipes.exceptions.SaveFileException;
 import com.group.collectionofrecipes.exceptions.SaveRecipeException;
@@ -17,7 +21,9 @@ import com.group.collectionofrecipes.mappers.IngredientMapper;
 import com.group.collectionofrecipes.mappers.RecipeMapper;
 import com.group.collectionofrecipes.repositories.CategoryRepository;
 import com.group.collectionofrecipes.repositories.FavouriteRepository;
+import com.group.collectionofrecipes.repositories.IngredientRepository;
 import com.group.collectionofrecipes.repositories.RatingRepository;
+import com.group.collectionofrecipes.repositories.RecipeIngredientRepository;
 import com.group.collectionofrecipes.repositories.RecipeRepository;
 import com.group.collectionofrecipes.repositories.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -57,6 +63,8 @@ public class RecipeService {
     private final CommentMapper commentMapper;
     private final FavouriteRepository favouriteRepository;
     private final RatingRepository ratingRepository;
+    private final IngredientRepository ingredientRepository;
+    private final RecipeIngredientRepository recipeIngredientRepository;
 
 
     //ГЛАВНАЯ СТРАНИЦА
@@ -302,8 +310,14 @@ public class RecipeService {
     //СОХРАНЕНИЕ РЕЦЕПТА
     //NOT DONE
     @Transactional
-    public RecipeDTO saveRecipe(CreateRecipeDTO createRecipeDTO, MultipartFile image, Principal principal) {
+    public RecipeDTO saveRecipe(CreateRecipeDTO createRecipeDTO, MultipartFile image, List<CreateIngredientDTO> ingredientDTOS, Principal principal) {
+
         log.info("Запрос на создание нового рецепта: {}", createRecipeDTO.getTitle());
+
+        if (principal == null) {
+            //throw new ....
+        }
+
         String imageName = null;
         Recipe savedRecipe;
 
@@ -311,15 +325,11 @@ public class RecipeService {
             imageName = fileStorageService.storeImageFile(image);
             log.info("Изображение для рецепта {} успешно сохранено: {}", createRecipeDTO.getTitle(), imageName);
 
-            Category category = categoryRepository.findById(createRecipeDTO.getCategoryId()).orElseThrow(()
-                    -> new EntityNotFoundException("Категория не найдена по id"));
-            User user = userRepository.findByUsername(principal.getName()).orElseThrow(()
-                    -> new EntityNotFoundException("Пользователь не найден по ID"));
-
-            Recipe recipe = recipeMapper.toRecipeEntity(createRecipeDTO, user, category, imageName);
-            recipe.setIsConfirmed(false);
+            Recipe recipe = collectRecipe(createRecipeDTO,principal,imageName);
             savedRecipe = recipeRepository.save(recipe);
             log.info("Рецепт успешно создан: ID={}, Name={}", savedRecipe.getId(), savedRecipe.getTitle());
+
+            saveIngredients(ingredientDTOS,savedRecipe);
 
         } catch (SaveFileException e) {
             log.error("Не удалось сохранить картинку для рецепта: {}. Ошибка: {}", createRecipeDTO.getTitle(), e.getMessage());
@@ -332,6 +342,28 @@ public class RecipeService {
             throw dbException;
         }
         return recipeMapper.toRecipeDto(savedRecipe);
+    }
+
+
+    private Recipe collectRecipe(CreateRecipeDTO createRecipeDTO, Principal principal,String imageName) {
+        Category category = categoryRepository.findById(createRecipeDTO.getCategoryId()).orElseThrow(()
+                -> new EntityNotFoundException("Категория не найдена по id"));
+        User user = userRepository.findByUsername(principal.getName()).orElseThrow(()
+                -> new EntityNotFoundException("Пользователь не найден по ID"));
+
+        return recipeMapper.toRecipeEntity(createRecipeDTO, user, category, imageName);
+    }
+
+    private void saveIngredients(List<CreateIngredientDTO> ingredientDTOS,Recipe savedRecipe) {
+        for (CreateIngredientDTO i:ingredientDTOS){
+            Ingredient ingredient = ingredientRepository.save(ingredientMapper.toIngredientEntity(i));
+            recipeIngredientRepository.save(RecipeIngredientMapping.builder()
+                    .unit(Unit.findByLabel(i.getUnit()))
+                    .amount(i.getAmount())
+                    .recipe(savedRecipe)
+                    .ingredient(ingredient)
+                    .build());
+        }
     }
 
     public RecipeDTO deleteRecipe(Long id) {

@@ -44,6 +44,9 @@ public final class ApiConstants {
     public static final String RECIPES_USER_ADDED_URI = "/api/v1/recipes/my-recipes";
     public static final Integer FIXED_PAGE_SIZE = 8;
 
+    //ингредиенты
+    public static final String MEASURES_URI = "/api/v1/measures";
+
     public static final String MAIN_USER_AVATAR_NAME = "dd4aab4d-ba0d-455d-8c9b-2e4f5d2f9124_аватарка.jpg";
 
 
