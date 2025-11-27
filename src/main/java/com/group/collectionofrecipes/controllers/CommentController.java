@@ -30,7 +30,6 @@ import java.util.Map;
 import static com.group.collectionofrecipes.utils.ApiConstants.FIELD_ERROR;
 import static com.group.collectionofrecipes.utils.ApiConstants.FIELD_MESSAGE;
 import static com.group.collectionofrecipes.utils.ApiConstants.FIELD_STATUS;
-import static com.group.collectionofrecipes.utils.ApiConstants.UNAUTHORIZED_USER;
 
 @Tag(name = "Comments")
 @Slf4j

@@ -98,7 +98,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, RECIPES_UNCONFIRMED_URI).hasAuthority(UserRole.ADMIN.name())
                         .requestMatchers(HttpMethod.GET, RECIPES_POPULAR_URI).hasAuthority(UserRole.ADMIN.name())
 
-                        .requestMatchers(HttpMethod.POST,RECIPES_URI).authenticated()
+                        .requestMatchers(HttpMethod.POST, RECIPES_URI).authenticated()
                         .requestMatchers(HttpMethod.GET, RECIPE_ID_URI).permitAll()
 
 

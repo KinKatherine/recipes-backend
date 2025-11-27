@@ -16,6 +16,7 @@ import com.group.collectionofrecipes.enums.Unit;
 import com.group.collectionofrecipes.exceptions.NoRecipesFoundException;
 import com.group.collectionofrecipes.exceptions.SaveFileException;
 import com.group.collectionofrecipes.exceptions.SaveRecipeException;
+import com.group.collectionofrecipes.exceptions.UnauthorizedUserException;
 import com.group.collectionofrecipes.mappers.CommentMapper;
 import com.group.collectionofrecipes.mappers.IngredientMapper;
 import com.group.collectionofrecipes.mappers.RecipeMapper;
@@ -48,6 +49,7 @@ import java.util.stream.Collectors;
 
 import static com.group.collectionofrecipes.utils.ApiConstants.ERROR_RECIPE_NOT_FOUND;
 import static com.group.collectionofrecipes.utils.ApiConstants.FIXED_PAGE_SIZE;
+import static com.group.collectionofrecipes.utils.ApiConstants.UNAUTHORIZED_USER;
 
 @Service
 @Slf4j
@@ -167,7 +169,7 @@ public class RecipeService {
     public Page<RecipeDTO> getFavouriteUserRecipes(Principal principal, int pageNumber) {
         log.info("Запрос на получение избранный рецептов пользователя");
         if (principal == null) {
-            throw new IllegalArgumentException("Пользователь не авторизован.");
+            throw new UnauthorizedUserException(UNAUTHORIZED_USER);
         }
         String username = principal.getName();
         Pageable pageRequest = PageRequest.of(
@@ -232,7 +234,7 @@ public class RecipeService {
     public Page<RecipeDTO> getUserAddedConfirmedRecipes(Principal principal, int pageNumber) {
         log.info("Запрос на получение подтвержденных рецептов пользователя");
         if (principal == null) {
-            throw new IllegalArgumentException("Пользователь не авторизован.");
+            throw new UnauthorizedUserException(UNAUTHORIZED_USER);
         }
         String username = principal.getName();
         Pageable pageRequest = PageRequest.of(
@@ -315,7 +317,8 @@ public class RecipeService {
         log.info("Запрос на создание нового рецепта: {}", createRecipeDTO.getTitle());
 
         if (principal == null) {
-            //throw new ....
+            log.error(UNAUTHORIZED_USER);
+            throw  new UnauthorizedUserException(UNAUTHORIZED_USER);
         }
 
         String imageName = null;
@@ -325,11 +328,11 @@ public class RecipeService {
             imageName = fileStorageService.storeImageFile(image);
             log.info("Изображение для рецепта {} успешно сохранено: {}", createRecipeDTO.getTitle(), imageName);
 
-            Recipe recipe = collectRecipe(createRecipeDTO,principal,imageName);
+            Recipe recipe = collectRecipe(createRecipeDTO, principal, imageName);
             savedRecipe = recipeRepository.save(recipe);
             log.info("Рецепт успешно создан: ID={}, Name={}", savedRecipe.getId(), savedRecipe.getTitle());
 
-            saveIngredients(ingredientDTOS,savedRecipe);
+            saveIngredients(ingredientDTOS, savedRecipe);
 
         } catch (SaveFileException e) {
             log.error("Не удалось сохранить картинку для рецепта: {}. Ошибка: {}", createRecipeDTO.getTitle(), e.getMessage());
@@ -345,7 +348,7 @@ public class RecipeService {
     }
 
 
-    private Recipe collectRecipe(CreateRecipeDTO createRecipeDTO, Principal principal,String imageName) {
+    private Recipe collectRecipe(CreateRecipeDTO createRecipeDTO, Principal principal, String imageName) {
         Category category = categoryRepository.findById(createRecipeDTO.getCategoryId()).orElseThrow(()
                 -> new EntityNotFoundException("Категория не найдена по id"));
         User user = userRepository.findByUsername(principal.getName()).orElseThrow(()
@@ -354,8 +357,8 @@ public class RecipeService {
         return recipeMapper.toRecipeEntity(createRecipeDTO, user, category, imageName);
     }
 
-    private void saveIngredients(List<CreateIngredientDTO> ingredientDTOS,Recipe savedRecipe) {
-        for (CreateIngredientDTO i:ingredientDTOS){
+    private void saveIngredients(List<CreateIngredientDTO> ingredientDTOS, Recipe savedRecipe) {
+        for (CreateIngredientDTO i:ingredientDTOS) {
             Ingredient ingredient = ingredientRepository.save(ingredientMapper.toIngredientEntity(i));
             recipeIngredientRepository.save(RecipeIngredientMapping.builder()
                     .unit(Unit.findByLabel(i.getUnit()))
