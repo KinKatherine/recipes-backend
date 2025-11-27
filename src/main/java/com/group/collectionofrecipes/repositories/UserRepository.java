@@ -24,6 +24,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("UPDATE User u SET u.photo = :avatarName WHERE u.username = :username")
     void updateAvatarByUsername(String username, String avatarName);
 
-    @Query("SELECT u.photo FROM User u WHERE u.username = :username")
+    @Query("SELECT u.photo FROM User u WHERE u.username = :username  and u.enabled = true ")
     Optional<String> findPhotoByUsername(String username);
 }

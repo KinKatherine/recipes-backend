@@ -26,6 +26,7 @@ import java.util.List;
 
 import static com.group.collectionofrecipes.utils.ApiConstants.AUTH_LOGIN_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.AUTH_REGISTER_URI;
+import static com.group.collectionofrecipes.utils.ApiConstants.AVATAR_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.CATEGORIES_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.CATEGORY_RECIPES_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.CHECK_EMAIL_URI;
@@ -72,6 +73,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, USER_AVATAR_URI).authenticated()
                         .requestMatchers(HttpMethod.GET, CHECK_USERNAME_URI).permitAll()
                         .requestMatchers(HttpMethod.GET, CHECK_EMAIL_URI).permitAll()
+                        .requestMatchers(HttpMethod.GET, AVATAR_URI).authenticated()
 
                         //категории
                         .requestMatchers(HttpMethod.GET, CATEGORIES_URI).permitAll()

@@ -125,8 +125,8 @@ public class AuthUserController {
         Map<String, Object> response = new HashMap<>();
         response.put(FIELD_STATUS, FIELD_ERROR);
         response.put(FIELD_MESSAGE, e.getMessage());
-        log.warn("Возврат ответа 400 Bad Request: {}", e.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        log.warn("Возврат ответа 401 Unauthorized: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
@@ -139,6 +139,12 @@ public class AuthUserController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
+
+    @GetMapping("/api/v1/users/avatar")
+    public ApiResponse<String> findUserAvatar(Principal principal) {
+        String avatar = userService.getUserAvatar(principal);
+        return ApiResponse.success(avatar);
+    }
 
 
     @GetMapping("/api/v1/validation/check-username")

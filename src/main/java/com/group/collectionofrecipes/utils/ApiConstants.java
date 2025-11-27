@@ -18,6 +18,7 @@ public final class ApiConstants {
     public static final String EMAIL_VERIFICATION_URI = "/api/v1/verify";
     public static final String CHECK_USERNAME_URI = "/api/v1/validation/check-username";
     public static final String CHECK_EMAIL_URI = "/api/v1/validation/check-email";
+    public static final String AVATAR_URI = "/api/v1/users/avatar";
 
 
 

@@ -120,8 +120,8 @@ public class UserService implements UserDetailsService {
     @Transactional
     public void createUserAvatar(MultipartFile image, Principal principal) {
         if (principal == null) {
-            log.error("Пользователь не зарегистрирован.");
-            throw new IllegalArgumentException("Пользователь не зарегистрирован.");
+            log.error("Пользователь не авторизовался.");
+            throw new IllegalArgumentException("Пользователь не авторизован.");
         }
 
         String username = principal.getName();
@@ -143,8 +143,8 @@ public class UserService implements UserDetailsService {
     @Transactional
     public void deleteUserAvatar(Principal principal) {
         if (principal == null) {
-            log.error("Пользователь не зарегистрирован.");
-            throw new IllegalArgumentException("Пользователь не зарегистрирован.");
+            log.error("Пользователь не авторизован.");
+            throw new IllegalArgumentException("Пользователь не авторизован.");
         }
         String filename = userRepository.findPhotoByUsername(principal.getName()).orElseThrow(() -> {
             log.warn("Пользователь {} не найден при попытке удалить аватарку.", principal.getName());
@@ -170,5 +170,16 @@ public class UserService implements UserDetailsService {
             throw new InvalidUserInfoException("Почта не валидна");
         }
         return !userRepository.existsByEmailIgnoreCase(email);
+    }
+
+    public String getUserAvatar(Principal principal) {
+        if (principal == null) {
+            log.error("Пользователь не авторизован.");
+            throw new IllegalArgumentException("Пользователь не авторизован.");
+        }
+        return userRepository.findPhotoByUsername(principal.getName()).orElseThrow(() -> {
+            log.warn("Пользователь {} не найден при попытке получить аватарку.", principal.getName());
+            return new EntityNotFoundException(ERROR_USER_NOT_FOUND + principal.getName());
+        });
     }
 }
