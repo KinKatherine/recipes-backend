@@ -5,6 +5,7 @@ import com.group.collectionofrecipes.dto.userdto.UserDTO;
 import com.group.collectionofrecipes.entities.User;
 import com.group.collectionofrecipes.enums.UserRole;
 import com.group.collectionofrecipes.exceptions.InvalidUserInfoException;
+import com.group.collectionofrecipes.exceptions.UnauthorizedUserException;
 import com.group.collectionofrecipes.mappers.UserMapper;
 import com.group.collectionofrecipes.repositories.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -58,8 +59,7 @@ public class UserService implements UserDetailsService {
         log.info("Загрузка пользователя для аутентификации: {}", username);
         User user = findByUsername(username).orElseThrow(() -> {
             log.error("Пользователь не найден: {}", username);
-            return new UsernameNotFoundException(
-                    String.format("Пользователь '%s' не найден", username)
+            return new UsernameNotFoundException(String.format("Пользователь '%s' не найден", username)
             );
         });
 
@@ -90,6 +90,7 @@ public class UserService implements UserDetailsService {
         log.info("Email успешно подтвержден для пользователя: {}", user.getUsername());
     }
 
+    @Transactional
     public UserDTO saveUser(RegistrationUserDTO registrationUserDTO) {
         log.info("Создание нового пользователя: {}", registrationUserDTO.getUsername());
         User user = userMapper.toUserEntity(registrationUserDTO);
@@ -113,7 +114,7 @@ public class UserService implements UserDetailsService {
         user.setRole(UserRole.USER);
         user.setCreatedAt(LocalDateTime.now());
         User savedUser = userRepository.save(user);
-        log.info("Пользователь успешно созранен с ID: {}", savedUser.getId());
+        log.info("Пользователь успешно создан с ID: {}", savedUser.getId());
         return userMapper.toUserDto(savedUser);
     }
 
@@ -121,7 +122,7 @@ public class UserService implements UserDetailsService {
     public void createUserAvatar(MultipartFile image, Principal principal) {
         if (principal == null) {
             log.error("Пользователь не авторизовался.");
-            throw new IllegalArgumentException("Пользователь не авторизован.");
+            throw new UnauthorizedUserException("Пользователь не авторизован.");
         }
 
         String username = principal.getName();
@@ -144,7 +145,7 @@ public class UserService implements UserDetailsService {
     public void deleteUserAvatar(Principal principal) {
         if (principal == null) {
             log.error("Пользователь не авторизован.");
-            throw new IllegalArgumentException("Пользователь не авторизован.");
+            throw new UnauthorizedUserException("Пользователь не авторизован.");
         }
         String filename = userRepository.findPhotoByUsername(principal.getName()).orElseThrow(() -> {
             log.warn("Пользователь {} не найден при попытке удалить аватарку.", principal.getName());
@@ -155,10 +156,10 @@ public class UserService implements UserDetailsService {
         userRepository.updateAvatarByUsername(username, MAIN_USER_AVATAR_NAME);
     }
 
-
     public boolean isUsernameAvailable(String username) {
         boolean isValid = username.matches(USERNAME_REGEX);
         if (!isValid) {
+            log.info("Логин не валиден");
             throw new InvalidUserInfoException("Логин не валиден");
         }
         return !userRepository.existsByUsernameIgnoreCase(username);
@@ -167,6 +168,7 @@ public class UserService implements UserDetailsService {
     public boolean isEmailAvailable(String email) {
         boolean isValid = email.matches(EMAIL_REGEX);
         if (!isValid) {
+            log.info("Почта не валидна");
             throw new InvalidUserInfoException("Почта не валидна");
         }
         return !userRepository.existsByEmailIgnoreCase(email);
@@ -175,7 +177,7 @@ public class UserService implements UserDetailsService {
     public String getUserAvatar(Principal principal) {
         if (principal == null) {
             log.error("Пользователь не авторизован.");
-            throw new IllegalArgumentException("Пользователь не авторизован.");
+            throw new UnauthorizedUserException("Пользователь не авторизован.");
         }
         return userRepository.findPhotoByUsername(principal.getName()).orElseThrow(() -> {
             log.warn("Пользователь {} не найден при попытке получить аватарку.", principal.getName());

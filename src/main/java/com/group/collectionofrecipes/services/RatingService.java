@@ -5,6 +5,7 @@ import com.group.collectionofrecipes.dto.ratingdto.RatingDTO;
 import com.group.collectionofrecipes.entities.Rating;
 import com.group.collectionofrecipes.entities.Recipe;
 import com.group.collectionofrecipes.entities.User;
+import com.group.collectionofrecipes.exceptions.UnauthorizedUserException;
 import com.group.collectionofrecipes.mappers.RatingMapper;
 import com.group.collectionofrecipes.repositories.RatingRepository;
 import com.group.collectionofrecipes.repositories.RecipeRepository;
@@ -19,6 +20,7 @@ import java.security.Principal;
 
 import static com.group.collectionofrecipes.utils.ApiConstants.ERROR_RECIPE_NOT_FOUND;
 import static com.group.collectionofrecipes.utils.ApiConstants.ERROR_USER_NOT_FOUND;
+import static com.group.collectionofrecipes.utils.ApiConstants.UNAUTHORIZED_USER;
 
 @Service
 @Slf4j
@@ -32,6 +34,11 @@ public class RatingService {
 
     @Transactional
     public RatingDTO createRating(CreateRatingDTO createRatingDTO, Principal principal) {
+
+        if (principal == null) {
+            log.error(UNAUTHORIZED_USER);
+            throw new UnauthorizedUserException(UNAUTHORIZED_USER);
+        }
 
         log.info("Запрос на оценку рецепта с id {} пользователем {}", createRatingDTO.getRecipeId(), principal.getName());
         String username = principal.getName();
@@ -67,6 +74,11 @@ public class RatingService {
     @Transactional
     public RatingDTO deleteRating(Long recipeId, Principal principal) {
 
+        if (principal == null) {
+            log.error(UNAUTHORIZED_USER);
+            throw new UnauthorizedUserException(UNAUTHORIZED_USER);
+        }
+
         log.info("Запрос на удаление оценки рецепта с id {} пользователем {}", recipeId, principal.getName());
         String username = principal.getName();
         Rating ratingToDelete = ratingRepository.findByRecipeIdAndUserUsername(recipeId, principal.getName())
@@ -85,6 +97,11 @@ public class RatingService {
 
     @Transactional
     public RatingDTO updateRating(Long recipeId, Integer estimation, Principal principal) {
+
+        if (principal == null) {
+            log.error(UNAUTHORIZED_USER);
+            throw new UnauthorizedUserException(UNAUTHORIZED_USER);
+        }
 
         String username = principal.getName();
         Rating existingRating = ratingRepository.findByRecipeIdAndUserUsername(recipeId, principal.getName())

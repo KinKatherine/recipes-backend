@@ -7,6 +7,7 @@ import com.group.collectionofrecipes.dto.userdto.RegistrationUserDTO;
 import com.group.collectionofrecipes.dto.userdto.UserDTO;
 import com.group.collectionofrecipes.exceptions.AppError;
 import com.group.collectionofrecipes.exceptions.InvalidUserInfoException;
+import com.group.collectionofrecipes.exceptions.UnauthorizedUserException;
 import com.group.collectionofrecipes.services.UserService;
 import com.group.collectionofrecipes.utils.JwtTokenUtils;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -119,14 +120,24 @@ public class AuthUserController {
         return ApiResponse.success();
     }
 
+    @ExceptionHandler(UnauthorizedUserException.class)
+    public ResponseEntity<Map<String, Object>> handleUnauthorizedUser(UnauthorizedUserException e) {
+        log.warn("Обработка исключения UnauthorizedUserException: {} ", e.getMessage());
+        Map<String, Object> response = new HashMap<>();
+        response.put(FIELD_STATUS, FIELD_ERROR);
+        response.put(FIELD_MESSAGE, e.getMessage());
+        log.warn("Возврат ответа 401 UNAUTHORIZED: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException e) {
         log.warn("Обработка исключения IllegalArgumentException: {} ", e.getMessage());
         Map<String, Object> response = new HashMap<>();
         response.put(FIELD_STATUS, FIELD_ERROR);
         response.put(FIELD_MESSAGE, e.getMessage());
-        log.warn("Возврат ответа 401 Unauthorized: {}", e.getMessage());
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        log.warn("Возврат ответа 400 BAD_REQUEST: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
@@ -151,7 +162,6 @@ public class AuthUserController {
     public ApiResponse<Boolean> checkUsername(@RequestParam String username) {
         boolean isAvailable = userService.isUsernameAvailable(username);
         return ApiResponse.success(isAvailable);
-
     }
 
     @GetMapping("/api/v1/validation/check-email")

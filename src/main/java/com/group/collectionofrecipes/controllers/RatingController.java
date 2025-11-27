@@ -4,6 +4,7 @@ package com.group.collectionofrecipes.controllers;
 import com.group.collectionofrecipes.dto.ratingdto.CreateRatingDTO;
 import com.group.collectionofrecipes.dto.ratingdto.RatingDTO;
 import com.group.collectionofrecipes.dto.responsedto.ApiResponse;
+import com.group.collectionofrecipes.exceptions.UnauthorizedUserException;
 import com.group.collectionofrecipes.services.RatingService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
@@ -131,5 +132,16 @@ public class RatingController {
         response.put(FIELD_MESSAGE, e.getMessage());
         log.warn("Возврат ответа 400 Bad Request: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(UnauthorizedUserException.class)
+    public ResponseEntity<Map<String, Object>> handleUnauthorizedUser(UnauthorizedUserException e) {
+        log.warn("Обработка исключения UnauthorizedUserException: {} ", e.getMessage());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put(FIELD_STATUS, FIELD_ERROR);
+        response.put(FIELD_MESSAGE, e.getMessage());
+        log.warn("Возврат ответа 401 UNAUTHORIZED: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 }

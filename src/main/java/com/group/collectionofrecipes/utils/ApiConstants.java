@@ -11,6 +11,8 @@ public final class ApiConstants {
     public static final String ERROR_RECIPE_NOT_FOUND = "Рецепт не найден по id";
     public static final String ERROR_USER_NOT_FOUND = "Пользователь не найден по username: ";
     public static final String ERROR_COMMENT_NOT_FOUND = "Комментарий не найден по id: ";
+    public static final String UNAUTHORIZED_USER = "Пользователь не авторизован.";
+
     //пользователь
     public static final String AUTH_LOGIN_URI = "/api/v1/auth/login";
     public static final String AUTH_REGISTER_URI = "/api/v1/auth/register";
