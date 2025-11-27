@@ -92,11 +92,11 @@ public class SecurityConfig {
                         //рецепты
                         .requestMatchers(HttpMethod.GET, RECIPE_OF_THE_DAY_URI).permitAll()
                         .requestMatchers(HttpMethod.GET, RECIPE_RECENT_URI).permitAll()
-                        .requestMatchers(HttpMethod.GET, RECIPE_ID_URI).permitAll()
                         .requestMatchers(HttpMethod.GET, RECIPES_FAVOURITE_URI).authenticated()
                         .requestMatchers(HttpMethod.GET, RECIPES_CONFIRMED_URI).authenticated()
                         .requestMatchers(HttpMethod.GET, RECIPES_UNCONFIRMED_URI).hasAuthority(UserRole.ADMIN.name())
                         .requestMatchers(HttpMethod.GET, RECIPES_POPULAR_URI).hasAuthority(UserRole.ADMIN.name())
+                        .requestMatchers(HttpMethod.GET, RECIPE_ID_URI).permitAll()
 
 
                         .requestMatchers(HttpMethod.POST, RECIPES_URI).authenticated()
