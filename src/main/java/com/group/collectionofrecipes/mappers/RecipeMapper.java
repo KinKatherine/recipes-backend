@@ -47,6 +47,7 @@ public class RecipeMapper {
                 .author(author)
                 .category(category)
                 .image(image)
+                .isConfirmed(false)
                 .build();
     }
 }

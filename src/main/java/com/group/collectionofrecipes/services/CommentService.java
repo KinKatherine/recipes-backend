@@ -5,6 +5,7 @@ import com.group.collectionofrecipes.dto.commentdto.CreateCommentDTO;
 import com.group.collectionofrecipes.entities.Comment;
 import com.group.collectionofrecipes.entities.Recipe;
 import com.group.collectionofrecipes.entities.User;
+import com.group.collectionofrecipes.exceptions.UnauthorizedUserException;
 import com.group.collectionofrecipes.mappers.CommentMapper;
 import com.group.collectionofrecipes.repositories.CommentRepository;
 import com.group.collectionofrecipes.repositories.RecipeRepository;
@@ -20,6 +21,7 @@ import java.security.Principal;
 
 import static com.group.collectionofrecipes.utils.ApiConstants.ERROR_COMMENT_NOT_FOUND;
 import static com.group.collectionofrecipes.utils.ApiConstants.ERROR_USER_NOT_FOUND;
+import static com.group.collectionofrecipes.utils.ApiConstants.UNAUTHORIZED_USER;
 
 @Service
 @Slf4j
@@ -33,6 +35,12 @@ public class CommentService {
 
     @Transactional
     public CommentDTO createComment(CreateCommentDTO createCommentDTO, Principal principal) {
+
+        if (principal == null) {
+            log.warn("Попытка создать комментарий без авторизации.");
+            throw new UnauthorizedUserException(UNAUTHORIZED_USER);
+        }
+
         log.info("Запрос на создание комментария для рецепта с id {}", createCommentDTO.getRecipeId());
         String username = principal.getName();
         Long recipeId = createCommentDTO.getRecipeId();
@@ -77,6 +85,11 @@ public class CommentService {
 
     @Transactional
     public CommentDTO updateComment(Long commentId, String newText, Principal principal) {
+
+        if (principal == null) {
+            log.warn("Попытка обновить комментарий без авторизации.");
+            throw new UnauthorizedUserException(UNAUTHORIZED_USER);
+        }
 
         log.info("Запрос пользователя {} на обновление комментария с id {}", principal.getName(), commentId);
         Comment commentToUpdate = commentRepository.findById(commentId)

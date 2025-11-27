@@ -20,6 +20,7 @@ public class IngredientMapper {
     public Ingredient toIngredientEntity(CreateIngredientDTO ingredientDTO) {
         return Ingredient.builder()
                 .name(ingredientDTO.getName())
+                .isConfirmed(false)
                 .build();
     }
 }

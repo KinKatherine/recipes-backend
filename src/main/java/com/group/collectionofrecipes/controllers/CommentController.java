@@ -4,6 +4,7 @@ package com.group.collectionofrecipes.controllers;
 import com.group.collectionofrecipes.dto.commentdto.CommentDTO;
 import com.group.collectionofrecipes.dto.commentdto.CreateCommentDTO;
 import com.group.collectionofrecipes.dto.responsedto.ApiResponse;
+import com.group.collectionofrecipes.exceptions.UnauthorizedUserException;
 import com.group.collectionofrecipes.services.CommentService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
@@ -44,10 +45,6 @@ public class CommentController {
                                                  Principal principal) {
 
         log.info("POST /api/v1/comments");
-        if (principal == null) {
-            log.warn("Попытка создать комментарий без авторизации.");
-            throw new AccessDeniedException("Недостаточно прав");
-        }
         CommentDTO newCommentDTO = commentService.createComment(createCommentDTO, principal);
         log.info("POST /api/v1/comments - комментарий для рецепта с id {} успешно добавлен", createCommentDTO.getRecipeId());
         return ApiResponse.success(newCommentDTO);
@@ -70,10 +67,6 @@ public class CommentController {
                                                  @RequestParam String newText,
                                                  Principal principal) {
         log.info("PUT /api/v1/comments/{}", commentId);
-        if (principal == null) {
-            log.warn("Попытка обновить комментарий без авторизации.");
-            throw new AccessDeniedException("Недостаточно прав");
-        }
         CommentDTO updatedCommentDTO = commentService.updateComment(commentId, newText, principal);
         log.info("PUT /api/v1/comments/{} - текст комментария с id {} изменен на {}", commentId, commentId, newText);
         return ApiResponse.success(updatedCommentDTO);
@@ -99,5 +92,16 @@ public class CommentController {
         response.put(FIELD_MESSAGE, "У вас нет прав для выполнения этого действия.");
         log.warn("Возврат ответа 403 Forbidden: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    }
+
+    @ExceptionHandler(UnauthorizedUserException.class)
+    public ResponseEntity<Map<String, Object>> handleUnauthorizedUser(UnauthorizedUserException e) {
+        log.warn("Обработка исключения UnauthorizedUserException: {} ", e.getMessage());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put(FIELD_STATUS, FIELD_ERROR);
+        response.put(FIELD_MESSAGE, "У вас нет прав для выполнения этого действия.");
+        log.warn("Возврат ответа 401 UNAUTHORIZED: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 }

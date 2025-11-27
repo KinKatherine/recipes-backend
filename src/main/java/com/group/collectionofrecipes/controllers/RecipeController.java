@@ -1,11 +1,13 @@
 package com.group.collectionofrecipes.controllers;
 
+import com.group.collectionofrecipes.dto.ingredientdto.CreateIngredientDTO;
 import com.group.collectionofrecipes.dto.recipedto.CreateRecipeDTO;
 import com.group.collectionofrecipes.dto.recipedto.RecipeDTO;
 import com.group.collectionofrecipes.dto.responsedto.ApiResponse;
 import com.group.collectionofrecipes.dto.responsedto.PaginationInfo;
 import com.group.collectionofrecipes.exceptions.DeleteFileException;
 import com.group.collectionofrecipes.exceptions.NoRecipesFoundException;
+import com.group.collectionofrecipes.exceptions.UnauthorizedUserException;
 import com.group.collectionofrecipes.services.RecipeService;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -130,9 +132,12 @@ public class RecipeController {
     )
     public ApiResponse<RecipeDTO> createRecipe(@RequestPart("recipe") @Valid CreateRecipeDTO createRecipeDTO,
                                                @RequestPart("image") MultipartFile image,
+                                               @RequestPart("ingredients") @Valid List<CreateIngredientDTO> ingredientDTOS,
                                                Principal principal) {
-        RecipeDTO recipeDTO = recipeService.saveRecipe(createRecipeDTO, image, principal);
-        return ApiResponse.success(recipeDTO);
+        log.info("GET /api/v1/recipes");
+        RecipeDTO recipeDTO =  recipeService.saveRecipe(createRecipeDTO, image, ingredientDTOS, principal);
+        log.info("GET /api/v1/recipes -создан рецепт с id {}", recipeDTO.getId());
+        return ApiResponse.success();
     }
 
 
@@ -186,7 +191,18 @@ public class RecipeController {
         Map<String, Object> response = new HashMap<>();
         response.put(FIELD_STATUS, FIELD_ERROR);
         response.put(FIELD_MESSAGE, e.getMessage());
-        log.warn("Возврат ответа 401 Unauthorized: {}", e.getMessage());
+        log.warn("Возврат ответа 400 BAD_REQUEST: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(UnauthorizedUserException.class)
+    public ResponseEntity<Map<String, Object>> handleUnauthorizedUser(UnauthorizedUserException e) {
+        log.warn("Обработка исключения UnauthorizedUserException: {} ", e.getMessage());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put(FIELD_STATUS, FIELD_ERROR);
+        response.put(FIELD_MESSAGE, e.getMessage());
+        log.warn("Возврат ответа 401 UNAUTHORIZED: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 
