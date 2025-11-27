@@ -159,7 +159,7 @@ public class RecipeService {
     public Page<RecipeDTO> getFavouriteUserRecipes(Principal principal, int pageNumber) {
         log.info("Запрос на получение избранный рецептов пользователя");
         if (principal == null) {
-            return Page.empty();
+            throw new IllegalArgumentException("Пользователь не авторизован.");
         }
         String username = principal.getName();
         Pageable pageRequest = PageRequest.of(
@@ -224,7 +224,7 @@ public class RecipeService {
     public Page<RecipeDTO> getUserAddedConfirmedRecipes(Principal principal, int pageNumber) {
         log.info("Запрос на получение подтвержденных рецептов пользователя");
         if (principal == null) {
-            return Page.empty();
+            throw new IllegalArgumentException("Пользователь не авторизован.");
         }
         String username = principal.getName();
         Pageable pageRequest = PageRequest.of(

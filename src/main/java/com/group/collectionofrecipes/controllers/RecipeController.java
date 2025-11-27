@@ -179,6 +179,17 @@ public class RecipeController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException e) {
+        log.warn("Обработка исключения IllegalArgumentException: {} ", e.getMessage());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put(FIELD_STATUS, FIELD_ERROR);
+        response.put(FIELD_MESSAGE, e.getMessage());
+        log.warn("Возврат ответа 401 Unauthorized: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
 
     //УТИЛЬНЫЙ МЕТОД
     private PaginationInfo getPaginationInfo(Page<RecipeDTO> dataPage) {
