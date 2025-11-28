@@ -21,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,7 +51,6 @@ public class RecipeController {
     private final RecipeService recipeService;
 
 
-    //ГЛАВНАЯ СТРАНИЦА
     @GetMapping("/api/v1/recipes/recipe-of-the-day")
     public ApiResponse<RecipeDTO> getRecipeOfTheDay(HttpServletRequest request) {
         String clientIp = getClientIpAddress(request);
@@ -70,7 +70,7 @@ public class RecipeController {
         return ApiResponse.success(recentRecipes);
     }
 
-    //СТРАНИЦА РЕЦЕПТА
+
     @GetMapping("/api/v1/recipes/{recipeId}")
     public ApiResponse<RecipeDTO> getRecipeById(@PathVariable Long recipeId, Principal principal) {
         log.info("GET /api/v1/recipes/{}", recipeId);
@@ -79,7 +79,7 @@ public class RecipeController {
         return ApiResponse.success(recipeDTO);
     }
 
-    //СТРАНИЦА ПОЛЬЗОВАТЕЛЯ ИЗБРАННОЕ
+
     @GetMapping("/api/v1/recipes/favourites")
     public ApiResponse<List<RecipeDTO>> getUserFavouriteRecipes(@RequestParam(defaultValue = "0") int page, Principal principal) {
         log.info("GET /api/v1/recipes/favourites");
@@ -88,7 +88,7 @@ public class RecipeController {
         return ApiResponse.success(recipePage.getContent(), getPaginationInfo(recipePage));
     }
 
-    //СТРАНИЦА ПОЛЬЗОВАТЕЛЯ МОИ ПОДТВЕРЖДЕННЫЕ РЕЦЕПТЫ
+
     @GetMapping("/api/v1/recipes/my-recipes")
     public ApiResponse<List<RecipeDTO>> getUserAddedConfirmedRecipes(@RequestParam(defaultValue = "0") int page, Principal principal) {
         log.info("GET /api/v1/recipes/my-recipes");
@@ -97,7 +97,7 @@ public class RecipeController {
         return ApiResponse.success(recipePage.getContent(), getPaginationInfo(recipePage));
     }
 
-    //СТРАНИЦА АДМИНИСТРАТОРА НЕПОДТВЕРЖДЕННЫЕ РЕЦЕПТЫ
+
     @GetMapping("/api/v1/recipes/unconfirmed")
     public ApiResponse<List<RecipeDTO>> getUnconfirmedRecipes(@RequestParam(defaultValue = "0") int page) {
         log.info("GET /api/v1/recipes/unconfirmed");
@@ -106,7 +106,7 @@ public class RecipeController {
         return ApiResponse.success(recipePage.getContent(), getPaginationInfo(recipePage));
     }
 
-    //ПОПУЛЯРНЫЕ РЕЦЕПТЫ
+
     @GetMapping("/api/v1/recipes/popular")
     public ApiResponse<List<RecipeDTO>> getPopularRecipes(Principal principal) {
         log.info("GET /api/v1/recipes/popular");
@@ -116,11 +116,19 @@ public class RecipeController {
     }
 
 
-    //ОДОБРЕНИЕ РЕЦЕПТА АДМИНОМ
-    // добавить сохранение ингредиента
-    @PutMapping("/api/v1/recipes/confirm/{id}")
-    public ApiResponse<Object> confirmRecipe(@PathVariable Long id) {
+    @PutMapping("/api/v1/recipes/unconfirmed/confirm/{id}")
+    public ApiResponse<Object> confirmUnconfirmedRecipe(@PathVariable Long id) {
+        log.info("PUT  /api/v1/recipes/unconfirmed/confirm/{id}");
         recipeService.confirmRecipe(id);
+        log.info("PUT  /api/v1/recipes/unconfirmed/confirm/{id} - рецепт с id {} подтвержден админом", id);
+        return ApiResponse.success();
+    }
+
+    @DeleteMapping("/api/v1/recipes/unconfirmed/delete/{id}")
+    public ApiResponse<Object> deleteUnconfirmedRecipe(@PathVariable Long id) {
+        log.info("DELETE  /api/v1/recipes/unconfirmed/delete/{id}");
+        recipeService.deleteRecipe(id);
+        log.info("DELETE  /api/v1/recipes/unconfirmed/delete/{id} - рецепт с id {} удален админом", id);
         return ApiResponse.success();
     }
 

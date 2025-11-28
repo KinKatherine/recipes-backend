@@ -44,6 +44,10 @@ public final class ApiConstants {
     public static final String RECIPES_URI = "/api/v1/recipes";
     public static final String RECIPES_USER_FAVOURITES_URI = "/api/v1/recipes/{id}";
     public static final String RECIPES_USER_ADDED_URI = "/api/v1/recipes/my-recipes";
+
+    public static final String RECIPES_CONFIRM_UNCONFIRMED_URI = "/api/v1/recipes/unconfirmed/confirm/{id}";
+    public static final String RECIPES_DELETE_UNCONFIRMED_URI = "/api/v1/recipes/unconfirmed/delete/{id}";
+
     public static final Integer FIXED_PAGE_SIZE = 8;
 
     //ингредиенты

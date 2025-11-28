@@ -43,8 +43,11 @@ import org.springframework.web.multipart.MultipartFile;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.group.collectionofrecipes.utils.ApiConstants.ERROR_RECIPE_NOT_FOUND;
@@ -69,13 +72,11 @@ public class RecipeService {
     private final RecipeIngredientRepository recipeIngredientRepository;
 
 
-    //ГЛАВНАЯ СТРАНИЦА
     @Transactional
     @Cacheable(
             value = "recipeOfTheDay",
             key = "T(java.time.LocalDate).now(T(java.time.ZoneId).of('Europe/Moscow'))"
     )
-    //DONE рецепт дня
     public RecipeDTO getRecipeOfTheDay() {
         log.info("Запрос на получение рецепта дня");
         LocalDate today = LocalDate.now(ZoneId.of("Europe/Moscow"));
@@ -88,7 +89,7 @@ public class RecipeService {
         return recipeMapper.toRecipeDto(newRecipe);
     }
 
-    //DONE 3 последние добавленные
+
     @Transactional(readOnly = true)
     public List<RecipeDTO> getLast3AddedRecipes(Principal principal) {
         log.info("Запрос на получение 3 последних добавленных рецептов");
@@ -111,8 +112,6 @@ public class RecipeService {
     }
 
 
-    //СТРАНИЦА РЕЦЕПТА
-    //DONE рецепт по id
     @Transactional(readOnly = true)
     public RecipeDTO getRecipeById(Long recipeId, Principal principal) {
         log.info("Запрос на получение рецепта по ID: {}", recipeId);
@@ -163,8 +162,6 @@ public class RecipeService {
     }
 
 
-    //СТРАНИЦА ПОЛЬЗОВАТЕЛЯ ИЗБРАННОЕ
-    //DONE
     @Transactional(readOnly = true)
     public Page<RecipeDTO> getFavouriteUserRecipes(Principal principal, int pageNumber) {
         log.info("Запрос на получение избранный рецептов пользователя");
@@ -189,8 +186,7 @@ public class RecipeService {
     }
 
 
-    //СТРАНИЦА АДМИНА НЕПОДТВЕРЖДЕННЫЕ РЕЦЕПТЫ
-    //DONE
+
     @Transactional(readOnly = true)
     public Page<RecipeDTO> getUnconfirmedRecipes(int pageNumber) {
         log.info("Запрос на получение неподтвержденныз рецептов");
@@ -212,24 +208,34 @@ public class RecipeService {
     }
 
 
-    //ОДОБРЕНИЕ РЕЦЕПТА АДМИНОМ
-    //ДОДЕЛАТЬ
+    @Transactional
     public void confirmRecipe(Long id) {
-        log.info("Запрос подтверждения рецепта  с id: {}", id);
+        log.info("Запрос подтверждения рецепта с id: {}", id);
+
         Recipe recipe = recipeRepository.findById(id)
                 .orElseThrow(() -> {
                     log.error("Рецепт с id {} не найден", id);
                     return new EntityNotFoundException("Неверный id рецепта");
                 });
 
-        recipe.setIsConfirmed(true); //тут еще с ингредиентами понять что делать
+        recipe.setIsConfirmed(true);
+
+        List<Ingredient> ingredients = recipe.getIngredientMappings().stream()
+                .map(RecipeIngredientMapping::getIngredient)
+                .filter(ing -> !Boolean.TRUE.equals(ing.getIsConfirmed()))
+                .toList();
+
+        for (Ingredient ing : ingredients) {
+            ing.setIsConfirmed(true);
+            log.info("Ингредиент '{}' автоматически подтвержден вместе с рецептом", ing.getName());
+        }
+
         recipeRepository.save(recipe);
-        log.info("Рецепт с id {} успешно подтвержден", id);
+
+        log.info("Рецепт с id {} и его ингредиенты успешно подтверждены", id);
     }
 
 
-    //СТРАНИЦА ПОЛЬЗОВАТЕЛЯ МОИ ПОДТВЕРЖДЕННЫЕ РЕЦЕПТЫ
-    //DONE
     @Transactional(readOnly = true)
     public Page<RecipeDTO> getUserAddedConfirmedRecipes(Principal principal, int pageNumber) {
         log.info("Запрос на получение подтвержденных рецептов пользователя");
@@ -254,7 +260,6 @@ public class RecipeService {
     }
 
 
-    //ПОЛУЧЕНИЕ РЕЦЕПТА ОПРЕДЕЛЁННОЙ КАТЕГОРИИ
     @Transactional(readOnly = true)
     public Page<RecipeDTO> getRecipesByCategoryId(Long categoryId, Principal principal, int pageNumber) {
         log.info("Запрос на получение рецептов для категории с ID: {}", categoryId);
@@ -271,6 +276,7 @@ public class RecipeService {
         log.info("Найдено {} рецептов категории с id {}", recipesCategoryPage.getTotalElements(), categoryId);
         return recipesCategoryPage.map(recipe -> mapRecipeWithRatingAndFavorite(recipe, ratingMap, currentUsername));
     }
+
 
     @Transactional(readOnly = true)
     public List<RecipeDTO> getPopularRecipes(Principal principal) {
@@ -289,14 +295,12 @@ public class RecipeService {
     }
 
 
-    //УТИЛЬНЫЙ МЕТОД
+
     private Map<Long, Double> getAverageRatingsMap(List<RecipeRatingProjection> ratingList) {
         return ratingList.stream()
                 .collect(Collectors.toMap(RecipeRatingProjection::getId, RecipeRatingProjection::getAverageRating));
     }
 
-
-    //УТИЛЬНЫЙ МЕТОД
     private RecipeDTO mapRecipeWithRatingAndFavorite(Recipe recipe, Map<Long, Double> ratingMap, String currentUsername) {
         RecipeDTO dto = recipeMapper.toRecipeDto(recipe);
         Double rawRating = ratingMap.getOrDefault(recipe.getId(), 0.0);
@@ -309,8 +313,6 @@ public class RecipeService {
     }
 
 
-    //СОХРАНЕНИЕ РЕЦЕПТА
-    //NOT DONE
     @Transactional
     public RecipeDTO saveRecipe(CreateRecipeDTO createRecipeDTO, MultipartFile image, List<CreateIngredientDTO> ingredientDTOS, Principal principal) {
 
@@ -358,29 +360,98 @@ public class RecipeService {
     }
 
     private void saveIngredients(List<CreateIngredientDTO> ingredientDTOS, Recipe savedRecipe) {
-        for (CreateIngredientDTO i:ingredientDTOS) {
-            Ingredient ingredient = ingredientRepository.save(ingredientMapper.toIngredientEntity(i));
-            recipeIngredientRepository.save(RecipeIngredientMapping.builder()
-                    .unit(Unit.findByLabel(i.getUnit()))
-                    .amount(i.getAmount())
+
+        Set<String> formattedNames = ingredientDTOS.stream()
+                .map(dto -> formatIngredientName(dto.getName()))
+                .collect(Collectors.toSet());
+
+        List<Ingredient> existingIngredients = ingredientRepository.findAllByNameIn(formattedNames);
+        Map<String, Ingredient> existingMap = new HashMap<>();
+
+        for (Ingredient ing : existingIngredients) {
+            String key = ing.getName();
+            if (!existingMap.containsKey(key)) {
+                existingMap.put(key, ing);
+            } else {
+                Ingredient currentInMap = existingMap.get(key);
+                if (Boolean.TRUE.equals(ing.getIsConfirmed())
+                        && !Boolean.TRUE.equals(currentInMap.getIsConfirmed())) {
+                    existingMap.put(key, ing);
+                }
+            }
+        }
+
+        List<RecipeIngredientMapping> mappingsToSave = new ArrayList<>();
+
+        for (CreateIngredientDTO dto : ingredientDTOS) {
+            String formattedName = formatIngredientName(dto.getName());
+            Ingredient ingredient;
+
+            if (existingMap.containsKey(formattedName)) {
+                ingredient = existingMap.get(formattedName);
+            } else {
+                ingredient = ingredientMapper.toIngredientEntity(dto);
+
+                ingredient.setName(formattedName);
+                ingredient = ingredientRepository.save(ingredient);
+                existingMap.put(formattedName, ingredient);
+            }
+
+            mappingsToSave.add(RecipeIngredientMapping.builder()
+                    .unit(Unit.findByLabel(dto.getUnit()))
+                    .amount(dto.getAmount())
                     .recipe(savedRecipe)
                     .ingredient(ingredient)
                     .build());
         }
+
+        recipeIngredientRepository.saveAll(mappingsToSave);
     }
 
-    public RecipeDTO deleteRecipe(Long id) {
+    private String formatIngredientName(String rawName) {
+        String trimmed = rawName.trim();
+        return trimmed.substring(0, 1).toUpperCase() + trimmed.substring(1).toLowerCase();
+    }
+
+    @Transactional
+    public void deleteRecipe(Long id) {
         log.info("Запрос на удаление рецепта с ID: {}", id);
+
         Recipe recipe = recipeRepository.findById(id)
                 .orElseThrow(() -> {
                     log.error("Рецепт с ID {} не найден для удаления", id);
                     return new EntityNotFoundException(ERROR_RECIPE_NOT_FOUND + id);
                 });
-        recipeRepository.deleteById(id);
-        log.info("Рецепт с ID {} успешно удален: {}", id, recipe.getTitle());
-        return recipeMapper.toRecipeDto(recipe);
-    }
 
+        String imageName = recipe.getImage();
+
+        List<Ingredient> candidatesForDeletion = recipe.getIngredientMappings().stream()
+                .map(RecipeIngredientMapping::getIngredient)
+                .filter(ing -> !Boolean.TRUE.equals(ing.getIsConfirmed()))
+                .toList();
+
+        recipeRepository.delete(recipe);
+        recipeRepository.flush();
+
+        for (Ingredient ingredient : candidatesForDeletion) {
+            long usageCount = recipeIngredientRepository.countByIngredientId(ingredient.getId());
+
+            if (usageCount == 0) {
+                ingredientRepository.delete(ingredient);
+                log.info("Неиспользуемый неподтвержденный ингредиент '{}' удален", ingredient.getName());
+            }
+        }
+        if (imageName != null && !imageName.isBlank()) {
+            try {
+                fileStorageService.deleteImageFile(imageName);
+                log.info("Файл изображения '{}' удален", imageName);
+            } catch (Exception e) {
+                log.warn("Не удалось удалить файл изображения '{}': {}", imageName, e.getMessage());
+            }
+        }
+
+        log.info("Рецепт с ID {} успешно удален", id);
+    }
 
     public RecipeDTO updateRecipe(Long id, CreateRecipeDTO createRecipeDTO) {
 
@@ -423,4 +494,5 @@ public class RecipeService {
                 .map(recipe -> mapRecipeWithRatingAndFavorite(recipe, ratingMap, currentUsername))
                 .toList();
     }
+
 }
