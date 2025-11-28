@@ -34,6 +34,8 @@ import static com.group.collectionofrecipes.utils.ApiConstants.CHECK_USERNAME_UR
 import static com.group.collectionofrecipes.utils.ApiConstants.COMMENTS_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.COMMENT_ID_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.MEASURES_URI;
+import static com.group.collectionofrecipes.utils.ApiConstants.RECIPES_CONFIRM_UNCONFIRMED_URI;
+import static com.group.collectionofrecipes.utils.ApiConstants.RECIPES_DELETE_UNCONFIRMED_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.USER_AVATAR_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.EMAIL_VERIFICATION_URI;
 import static com.group.collectionofrecipes.utils.ApiConstants.RATINGS_URI;
@@ -98,6 +100,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, RECIPES_UNCONFIRMED_URI).hasAuthority(UserRole.ADMIN.name())
                         .requestMatchers(HttpMethod.GET, RECIPES_POPULAR_URI).hasAuthority(UserRole.ADMIN.name())
 
+                        .requestMatchers(HttpMethod.PUT, RECIPES_CONFIRM_UNCONFIRMED_URI).hasAuthority(UserRole.ADMIN.name())
+                        .requestMatchers(HttpMethod.DELETE, RECIPES_DELETE_UNCONFIRMED_URI).hasAuthority(UserRole.ADMIN.name())
                         .requestMatchers(HttpMethod.POST, RECIPES_URI).authenticated()
                         .requestMatchers(HttpMethod.GET, RECIPE_ID_URI).permitAll()
 

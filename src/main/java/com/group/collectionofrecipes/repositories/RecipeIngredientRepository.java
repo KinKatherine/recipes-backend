@@ -5,4 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface RecipeIngredientRepository extends JpaRepository<RecipeIngredientMapping, Long> {
 
+    long countByIngredientId(Long ingredientId);
 }
