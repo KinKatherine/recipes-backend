@@ -10,10 +10,13 @@ public enum Unit {
     LITER("л."),
     PIECE("шт."),
     TEASPOON("ч. л."),
-    TABLESPOON("сл. л."),
+    TABLESPOON("ст. л."),
     CUP("ст."),
     PINCH("щеп."),
-    TO_TASTE("по вкусу");
+    TO_TASTE("по вкусу"),
+    SHEAF("пучок"),
+    CLOVE("зубч.");
+
 
 
     private final String label;
