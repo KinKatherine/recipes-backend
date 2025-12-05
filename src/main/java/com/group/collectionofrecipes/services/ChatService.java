@@ -72,7 +72,7 @@ public class ChatService {
     }
 
     public String uploadFile(MultipartFile file) {
-        String fileName = fileStorageService.storeFile(file);
+        String fileName = fileStorageService.storeMessageFile(file);
         return "/uploads/" + fileName;
     }
 

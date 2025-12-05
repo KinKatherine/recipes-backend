@@ -20,6 +20,7 @@ public class LocalFileStorageService {
 
     private final Path fileStorageImageLocation = Paths.get("uploads/recipes").toAbsolutePath().normalize();
     private final Path fileStorageAvatarLocation = Paths.get("uploads/avatars").toAbsolutePath().normalize();
+    private final Path fileStorageMessageLocation = Paths.get("uploads/messageFiles").toAbsolutePath().normalize();
 
     public LocalFileStorageService() {
         try {
@@ -35,6 +36,10 @@ public class LocalFileStorageService {
 
     public String storeAvatarFile(MultipartFile file) {
         return storeFile(file, fileStorageAvatarLocation);
+    }
+
+    public String storeMessageFile(MultipartFile file) {
+        return storeFile(file, fileStorageMessageLocation);
     }
 
     public String storeImageFile(MultipartFile file) {
