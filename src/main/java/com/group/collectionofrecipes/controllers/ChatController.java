@@ -2,8 +2,10 @@ package com.group.collectionofrecipes.controllers;
 
 import com.group.collectionofrecipes.dto.chatdto.ChatMessageDTO;
 import com.group.collectionofrecipes.dto.chatdto.SendMessageDTO;
+import com.group.collectionofrecipes.dto.responsedto.ApiResponse;
 import com.group.collectionofrecipes.services.ChatService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,19 +35,16 @@ public class ChatController {
     private final ChatService chatService;
 
     @PostMapping
-    public ResponseEntity<ChatMessageDTO> sendMessage(
-            @RequestBody SendMessageDTO messageDTO,
-            Principal principal
-    ) {
-        log.debug(principal.getName());
-        
-        return ResponseEntity.ok(chatService.sendMessage(principal.getName(), messageDTO));
+    public ApiResponse<ChatMessageDTO> sendMessage(@RequestBody @Valid SendMessageDTO messageDTO,
+                                                    Principal principal) {
+        log.info("POST  /chat");
+        ChatMessageDTO chatMessageDTO =  chatService.sendMessage(principal.getName(), messageDTO);
+        log.info("POST  /chat - сообщение с id {} отправлено", chatMessageDTO.getId());
+        return ApiResponse.success(chatMessageDTO);
     }
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Map<String, String>> uploadAttachment(
-            @RequestParam("file") MultipartFile file
-    ) {
+    public ResponseEntity<Map<String, String>> uploadAttachment( @RequestParam("file") MultipartFile file) {
         String fileUrl = chatService.uploadFile(file);
         return ResponseEntity.ok(Map.of("url", fileUrl));
     }
