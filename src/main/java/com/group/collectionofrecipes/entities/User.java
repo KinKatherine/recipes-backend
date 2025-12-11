@@ -1,5 +1,6 @@
 package com.group.collectionofrecipes.entities;
 
+import com.group.collectionofrecipes.enums.Language;
 import com.group.collectionofrecipes.enums.UserRole;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -62,6 +63,8 @@ public class User {
     @Column(name = "photo")
     private String photo;
 
+    @Enumerated(EnumType.STRING)
+    private Language language;
 
     //один пользователь - автор многих рецептов
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

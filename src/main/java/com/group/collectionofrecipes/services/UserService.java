@@ -1,8 +1,10 @@
 package com.group.collectionofrecipes.services;
 
+import com.group.collectionofrecipes.dto.userdto.LanguageRequest;
 import com.group.collectionofrecipes.dto.userdto.RegistrationUserDTO;
 import com.group.collectionofrecipes.dto.userdto.UserDTO;
 import com.group.collectionofrecipes.entities.User;
+import com.group.collectionofrecipes.enums.Language;
 import com.group.collectionofrecipes.enums.UserRole;
 import com.group.collectionofrecipes.exceptions.InvalidUserInfoException;
 import com.group.collectionofrecipes.exceptions.UnauthorizedUserException;
@@ -10,6 +12,7 @@ import com.group.collectionofrecipes.mappers.UserMapper;
 import com.group.collectionofrecipes.repositories.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -31,6 +34,7 @@ import static com.group.collectionofrecipes.utils.ApiConstants.ERROR_USER_NOT_FO
 import static com.group.collectionofrecipes.utils.ApiConstants.MAIN_USER_AVATAR_NAME;
 
 import static com.group.collectionofrecipes.utils.ApiConstants.EMAIL_REGEX;
+import static com.group.collectionofrecipes.utils.ApiConstants.UNAUTHORIZED_USER;
 import static com.group.collectionofrecipes.utils.ApiConstants.USERNAME_REGEX;
 
 @Service
@@ -111,6 +115,7 @@ public class UserService implements UserDetailsService {
         log.info("Отправка verification email для пользователя: {}", user.getUsername());
         mailSenderService.sendHtmlEmail(user.getEmail(), subject, templateName, context);
 
+        user.setLanguage(Language.RUSSIAN);
         user.setRole(UserRole.USER);
         user.setCreatedAt(LocalDateTime.now());
         User savedUser = userRepository.save(user);
@@ -120,10 +125,7 @@ public class UserService implements UserDetailsService {
 
     @Transactional
     public void createUserAvatar(MultipartFile image, Principal principal) {
-        if (principal == null) {
-            log.error("Пользователь не авторизовался.");
-            throw new UnauthorizedUserException("Пользователь не авторизован.");
-        }
+        checkPrincipal(principal);
 
         String username = principal.getName();
 
@@ -143,10 +145,7 @@ public class UserService implements UserDetailsService {
 
     @Transactional
     public void deleteUserAvatar(Principal principal) {
-        if (principal == null) {
-            log.error("Пользователь не авторизован.");
-            throw new UnauthorizedUserException("Пользователь не авторизован.");
-        }
+        checkPrincipal(principal);
         String filename = userRepository.findPhotoByUsername(principal.getName()).orElseThrow(() -> {
             log.warn("Пользователь {} не найден при попытке удалить аватарку.", principal.getName());
             return new EntityNotFoundException(ERROR_USER_NOT_FOUND + principal.getName());
@@ -175,13 +174,31 @@ public class UserService implements UserDetailsService {
     }
 
     public String getUserAvatar(Principal principal) {
-        if (principal == null) {
-            log.error("Пользователь не авторизован.");
-            throw new UnauthorizedUserException("Пользователь не авторизован.");
-        }
+        checkPrincipal(principal);
         return userRepository.findPhotoByUsername(principal.getName()).orElseThrow(() -> {
             log.warn("Пользователь {} не найден при попытке получить аватарку.", principal.getName());
             return new EntityNotFoundException(ERROR_USER_NOT_FOUND + principal.getName());
         });
+    }
+
+    public String getUserLanguage(Principal principal) {
+        checkPrincipal(principal);
+        return userRepository.findLanguageByUsername(principal.getName()).orElseThrow(() -> {
+            log.warn("Пользователь {} не найден при попытке получить аватарку.", principal.getName());
+            return new EntityNotFoundException(ERROR_USER_NOT_FOUND + principal.getName());
+        });
+    }
+
+    @Transactional
+    public void updateUserLanguage(Principal principal, @Valid LanguageRequest language) {
+        checkPrincipal(principal);
+        userRepository.updateLanguageByUsername(principal.getName(), language.getLanguage());
+    }
+
+    private void checkPrincipal(Principal principal) {
+        if (principal == null) {
+            log.error(UNAUTHORIZED_USER);
+            throw new UnauthorizedUserException(UNAUTHORIZED_USER);
+        }
     }
 }
