@@ -1,6 +1,7 @@
 package com.group.collectionofrecipes.repositories;
 
 import com.group.collectionofrecipes.entities.User;
+import com.group.collectionofrecipes.enums.Language;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -26,4 +27,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT u.photo FROM User u WHERE u.username = :username  and u.enabled = true ")
     Optional<String> findPhotoByUsername(String username);
+
+    @Query("SELECT u.language FROM User u WHERE u.username = :username  and u.enabled = true ")
+    Optional<String> findLanguageByUsername(String username);
+
+    @Modifying
+    @Query("UPDATE User u SET u.language = :language WHERE u.username = :username")
+    void updateLanguageByUsername(String username, Language language);
 }

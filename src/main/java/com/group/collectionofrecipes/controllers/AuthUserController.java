@@ -3,6 +3,7 @@ package com.group.collectionofrecipes.controllers;
 import com.group.collectionofrecipes.dto.responsedto.ApiResponse;
 import com.group.collectionofrecipes.dto.userdto.JwtRequest;
 import com.group.collectionofrecipes.dto.userdto.JwtResponse;
+import com.group.collectionofrecipes.dto.userdto.LanguageRequest;
 import com.group.collectionofrecipes.dto.userdto.RegistrationUserDTO;
 import com.group.collectionofrecipes.dto.userdto.UserDTO;
 import com.group.collectionofrecipes.exceptions.AppError;
@@ -119,6 +120,23 @@ public class AuthUserController {
         log.info("Аватарка пользователя {} успешно удалена", principal.getName());
         return ApiResponse.success();
     }
+
+    @PostMapping("/api/v1/users/language")
+    public ApiResponse<String> updateUserLanguage(@RequestBody @Valid LanguageRequest language , Principal principal) {
+        log.info("Post  /api/v1/users/language");
+        userService.updateUserLanguage(principal, language);
+        log.info("Язык пользователя {} успешно изменен", principal.getName());
+        return ApiResponse.success();
+    }
+
+    @GetMapping("/api/v1/users/language")
+    public ApiResponse<String> getUserLanguage(Principal principal) {
+        log.info("Get  /api/v1/users/language");
+        String language = userService.getUserLanguage(principal);
+        log.info("Язык пользователя {} успешно получен", principal.getName());
+        return ApiResponse.success(language);
+    }
+
 
     @ExceptionHandler(UnauthorizedUserException.class)
     public ResponseEntity<Map<String, Object>> handleUnauthorizedUser(UnauthorizedUserException e) {
