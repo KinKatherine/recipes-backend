@@ -140,3 +140,78 @@
 |  **POST**  | `/api/v1/categories`            | Создание новой категории.                       | Администратор          |
 |  **PUT**   | `/api/v1/categories/{id}`       | Обновление категории.                           | Администратор          |
 | **DELETE** | `/api/v1/categories/{id}`       | Удаление категории.  <br/>                           | Администратор          |_
+
+---
+# API Documentation
+
+## Роли пользователей
+- **ANONYMOUS** - неавторизованный пользователь
+- **USER** - авторизованный пользователь
+- **ADMIN** - администратор
+
+## API по ролям
+
+### Для роли ANONYMOUS
+
+#### Работа с рецептами
+- `GET /api/v1/recipes/{recipeId}` - получить рецепт по id
+- `GET /api/v1/recipes/title` - поиск рецепта по названию
+- `GET /api/v1/recipes/recipe-of-the-day` получение рецепта дня
+- `GET /api/v1/recipes/recent` получение 3 последних добавленных рецептов
+- `GET /api/v1/recipes/popular` получение популярных рецептов
+- `GET /api/v1/recipes/title`
+- `GET /api/v1/recipes/title`
+- `GET /api/v1/recipes/title`
+
+#### Работа с категориями
+- `GET /api/v1/categories` - получить список всех категорий
+- `GET /api/v1/categories/{categoryId}/recipes` - получение рецептов определённой категории
+
+#### Авторизация
+- `POST /api/v1/auth/register` - регистрация
+- `POST /api/v1/auth/login` - вход в аккаунт
+- `GET /api/v1/validation/check-username` - проверка доступности имени пользователя
+- `GET /api/v1/validation/check-email` - проверка доступности почты
+- `GET /api/v1/verify` - подтвержение почты
+
+### Для роли USER
+Выше перечисленные и следующие:
+#### Работа с рецептами
+- `POST /api/v1/recipes` - создание нового рецепта
+- `GET /api/v1/recipes/my-recipes` получение рецептов добавленных пользователем
+- `GET /api/v1/recipes/favourites` - получение избранных рецептов пользователя
+
+#### Работа с рейтингом
+- `POST /api/v1/ratings` - оценить рецепт
+- `PUT /api/v1/ratings/{recipeId}` - переоценить рецепт
+- `DELETE /api/v1/ratings/{recipeId}` - удалить оценку рецепта
+
+#### Работа с комментариями
+- `POST /api/v1/comments` - написать комментарий к рецепту
+- `PUT /api/v1/comments/{commentId}` - изменить свой комментарий к рецепту
+- `DELETE /api/v1/comments/{commentId}` - удалить свой комментарий к рецепту
+
+### Работа 
+
+### Для роли ADMIN
+
+#### Управление пользователями
+- `GET /api/admin/users` - получить список всех пользователей
+- `POST /api/admin/users` - создать пользователя
+- `PUT /api/admin/users/{id}` - обновить пользователя
+- `DELETE /api/admin/users/{id}` - удалить пользователя
+- `PUT /api/admin/users/{id}/role` - изменить роль пользователя
+
+#### Системные операции
+- `GET /api/admin/logs` - получить логи системы
+- `GET /api/admin/metrics` - получить метрики системы
+
+## Фильтрация и пагинация
+
+### Параметры запросов
+- `page` - номер страницы (по умолчанию 0)
+- `size` - размер страницы (по умолчанию 20)
+- `sort` - сортировка (например, `createdAt,desc`)
+- `filter` - фильтр по полям (JSON строка)
+
+### Примеры фильтрации
