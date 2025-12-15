@@ -31,7 +31,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
             "FROM Rating r WHERE r.recipe.id = :recipeId")
     RatingStatsProjection calculateRatingStats(Long recipeId);
 
-    @Query("SELECT c FROM Comment c JOIN FETCH c.user WHERE c.recipe.id = :recipeId ORDER BY c.createdAt DESC")
+    @Query("SELECT c FROM Comment c JOIN FETCH c.user WHERE c.recipe.id = :recipeId ORDER BY c.createdAt ASC")
     List<Comment> loadCommentsByRecipeId(@Param("recipeId") Long recipeId); //загружаем комментарии рецепта по id
 
     @Query("SELECT im FROM RecipeIngredientMapping im JOIN FETCH im.ingredient WHERE im.recipe.id = :recipeId")
