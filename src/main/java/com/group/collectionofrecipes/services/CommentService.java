@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.group.collectionofrecipes.utils.ApiConstants.ERROR_COMMENT_NOT_FOUND;
 import static com.group.collectionofrecipes.utils.ApiConstants.ERROR_USER_NOT_FOUND;
@@ -113,5 +115,24 @@ public class CommentService {
                 commentId, currentUsername, oldText, newText);
 
         return commentMapper.toCommentDto(updatedComment);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CommentDTO> getUserComments(Principal principal) {
+        if (principal == null) {
+            log.error(UNAUTHORIZED_USER);
+            throw new UnauthorizedUserException(UNAUTHORIZED_USER);
+        }
+        String username = principal.getName();
+        User user = userRepository.findByUsername(username) .orElseThrow(() -> {
+            log.warn("Пользователь {} не найден", username);
+            return new EntityNotFoundException(ERROR_USER_NOT_FOUND + username);
+        });
+        List<Comment> comments = commentRepository.findCommentsByUserId(user.getId());
+        List<CommentDTO> commentDTOS = new ArrayList<>();
+        for (Comment comment : comments) {
+            commentDTOS.add(commentMapper.toCommentDto(comment));
+        }
+        return commentDTOS;
     }
 }
