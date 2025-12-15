@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.group.collectionofrecipes.utils.ApiConstants.FIELD_ERROR;
@@ -70,6 +72,15 @@ public class CommentController {
         CommentDTO updatedCommentDTO = commentService.updateComment(commentId, newText, principal);
         log.info("PUT /api/v1/comments/{} - текст комментария с id {} изменен на {}", commentId, commentId, newText);
         return ApiResponse.success(updatedCommentDTO);
+    }
+
+
+    @GetMapping("/api/v1/comments")
+    public ApiResponse<List<CommentDTO>> getUserComments(Principal principal) {
+        log.info("GET /api/v1/comments");
+        List<CommentDTO> commentDTOList = commentService.getUserComments(principal);
+        log.info("GET /api/v1/comments для пользователя {}", principal.getName());
+        return ApiResponse.success(commentDTOList);
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
