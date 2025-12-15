@@ -111,63 +111,6 @@
 
 ---
 
----
-
-## 🚀 Деплой (Docker)
-
-Для развертывания приложения используя Docker выполните следующие шаги.
-
-### 1. Создание сети
-
-Создаем изолированную сеть для общения контейнеров:
-
-```bash
-docker network create recipes-net
-```
-
-### 2. Запуск Базы Данных (PostgreSQL)
-
-Запускаем контейнер с PostgreSQL и создаем том для сохранения данных:
-
-```bash
-docker run -d \
-  --name recipes-db \
-  --network recipes-net \
-  -e POSTGRES_DB=recipes_db \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=your_strong_db_password \
-  -v db_data:/var/lib/postgresql/data \
-  postgres:17-alpine
-```
-
-### 3. Сборка Бэкенда
-
-Находясь в корне проекта, собираем образ приложения:
-
-```bash
-docker build -t recipes-backend .
-```
-
-### 4. Запуск Бэкенда
-
-Запускаем приложение, передавая все необходимые переменные окружения:
-
-```bash
-docker run -d \
-  --name recipes-backend-app \
-  --network recipes-net \
-  -p 8080:8080 \
-  -e RECIPES_DATASOURCE_URL=jdbc:postgresql://recipes-db:5432/recipes_db \
-  -e RECIPES_DATABASE_NAME=postgres \
-  -e RECIPES_DATABASE_PASSWORD=your_strong_db_password \
-  -e RECIPES_USER_PASSWORD=admin_password \
-  -e RECIPES_JWT_SECRET=your_jwt_secret_key_change_it \
-  -e RECIPES_MAIL_PASSWORD=your_mail_password \
-  recipes-backend
-```
-
-Приложение будет доступно по адресу: `http://localhost:8080`
-
 ## 🔌 API Endpoints
 
 Сервис предоставляет **RESTful API**.
@@ -270,3 +213,59 @@ docker run -d \
 #### Работа с комментариями
 - `GET /api/v1/recipes/unconfirmed` - удаление комментария
 
+
+---
+## 🚀 Деплой (Docker)
+
+Для развертывания приложения используя Docker выполните следующие шаги.
+
+### 1. Создание сети
+
+Создаем изолированную сеть для общения контейнеров:
+
+```bash
+docker network create recipes-net
+```
+
+### 2. Запуск Базы Данных (PostgreSQL)
+
+Запускаем контейнер с PostgreSQL и создаем том для сохранения данных:
+
+```bash
+docker run -d \
+  --name recipes-db \
+  --network recipes-net \
+  -e POSTGRES_DB=recipes_db \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=your_strong_db_password \
+  -v db_data:/var/lib/postgresql/data \
+  postgres:17-alpine
+```
+
+### 3. Сборка Бэкенда
+
+Находясь в корне проекта, собираем образ приложения:
+
+```bash
+docker build -t recipes-backend .
+```
+
+### 4. Запуск Бэкенда
+
+Запускаем приложение, передавая все необходимые переменные окружения:
+
+```bash
+docker run -d \
+  --name recipes-backend-app \
+  --network recipes-net \
+  -p 8080:8080 \
+  -e RECIPES_DATASOURCE_URL=jdbc:postgresql://recipes-db:5432/recipes_db \
+  -e RECIPES_DATABASE_NAME=postgres \
+  -e RECIPES_DATABASE_PASSWORD=your_strong_db_password \
+  -e RECIPES_USER_PASSWORD=admin_password \
+  -e RECIPES_JWT_SECRET=your_jwt_secret_key_change_it \
+  -e RECIPES_MAIL_PASSWORD=your_mail_password \
+  recipes-backend
+```
+
+Приложение будет доступно по адресу: `http://localhost:8080`
