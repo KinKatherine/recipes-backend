@@ -156,11 +156,9 @@
 - `GET /api/v1/recipes/{recipeId}` - получить рецепт по id
 - `GET /api/v1/recipes/title` - поиск рецепта по названию
 - `GET /api/v1/recipes/recipe-of-the-day` получение рецепта дня
-- `GET /api/v1/recipes/recent` получение 3 последних добавленных рецептов
-- `GET /api/v1/recipes/popular` получение популярных рецептов
-- `GET /api/v1/recipes/title`
-- `GET /api/v1/recipes/title`
-- `GET /api/v1/recipes/title`
+- `GET /api/v1/recipes/recent` - получение 3 последних добавленных рецептов
+- `GET /api/v1/recipes/popular` - получение популярных рецептов
+- `GET /api/v1/recipes/title` - поиск рецепта по названию
 
 #### Работа с категориями
 - `GET /api/v1/categories` - получить список всех категорий
