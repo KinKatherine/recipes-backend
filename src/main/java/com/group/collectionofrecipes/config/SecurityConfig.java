@@ -98,7 +98,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, RECIPES_FAVOURITE_URI).authenticated()
                         .requestMatchers(HttpMethod.GET, RECIPES_CONFIRMED_URI).authenticated()
                         .requestMatchers(HttpMethod.GET, RECIPES_UNCONFIRMED_URI).hasAuthority(UserRole.ADMIN.name())
-                        .requestMatchers(HttpMethod.GET, RECIPES_POPULAR_URI).hasAuthority(UserRole.ADMIN.name())
+                        .requestMatchers(HttpMethod.GET, RECIPES_POPULAR_URI).permitAll()
 
                         .requestMatchers(HttpMethod.PUT, RECIPES_CONFIRM_UNCONFIRMED_URI).hasAuthority(UserRole.ADMIN.name())
                         .requestMatchers(HttpMethod.DELETE, RECIPES_DELETE_UNCONFIRMED_URI).hasAuthority(UserRole.ADMIN.name())
