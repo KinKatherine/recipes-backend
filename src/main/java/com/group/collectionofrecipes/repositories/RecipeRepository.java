@@ -108,4 +108,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
             "WHERE r.isConfirmed = true " +
             "AND LOWER(r.title) LIKE LOWER(CONCAT('%', :title, '%'))")
     List<Recipe> findByTitleContainingIgnoreCase(String title);
+
+    
+    Page<Recipe> sortRecipesByCookingTime(String username, Pageable pageRequest);
 }

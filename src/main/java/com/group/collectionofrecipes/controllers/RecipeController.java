@@ -59,6 +59,13 @@ public class RecipeController {
                 recipeId, principal.getName());
         return ApiResponse.success();
     }
+    @GetMapping("/api/v1/recipes/sortByCookingTime")
+    public ApiResponse<List<RecipeDTO>> sortRecipesByCookingTime(@RequestParam(defaultValue = "0") int page, Principal principal) {
+        log.info("GET /api/v1/recipes/sortByCookingTime");
+        List<RecipeDTO> recipeDTOList = recipeService.sortRecipesByCookingTime(principal, page);
+        log.info("GET /api/v1/recipes/sortByCookingTime");
+        return ApiResponse.success(recipeDTOList);
+    }
 
     @DeleteMapping("/api/v1/favorites/{recipeId}")
     public ApiResponse<RecipeDTO> deleteIsFavourite(@PathVariable Long recipeId, Principal principal) {

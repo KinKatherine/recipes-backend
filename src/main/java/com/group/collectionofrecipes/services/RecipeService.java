@@ -188,6 +188,28 @@ public class RecipeService {
         return favoriteRecipesPage.map(recipe -> mapRecipeWithRatingAndFavorite(recipe, ratingMap, username));
     }
 
+    @Transactional(readOnly = true)
+    public List<RecipeDTO> sortRecipesByCookingTime(Principal principal, int pageNumber) {
+        log.info("Запрос на сортировку репептов по времени готовки");
+
+        String username = (principal != null) ? principal.getName() : null;
+        Pageable pageRequest = PageRequest.of(
+                pageNumber,
+                FIXED_PAGE_SIZE,
+                Sort.by("fb.cookingTime").ascending()
+        );
+        Page<Recipe> sortedRecipesPage =
+                recipeRepository.sortRecipesByCookingTime(username, pageRequest);
+
+        List<Long> recipeIds = sortedRecipesPage.getContent().stream().map(Recipe::getId).toList();
+        Map<Long, Double> ratingMap = getAverageRatingsMap(recipeRepository.findAverageRatingsForRecipes(recipeIds));
+
+
+        log.info("{} рецептов отсортировано по времени приготовления", sortedRecipesPage.getTotalElements());
+        return sortedRecipesPage.stream()
+                        .map(recipe -> mapRecipeWithRatingAndFavorite(recipe, ratingMap, username))
+                        .toList();
+    }
 
 
     @Transactional(readOnly = true)
