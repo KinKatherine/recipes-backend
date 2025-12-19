@@ -95,7 +95,7 @@ public class UserService implements UserDetailsService {
     }
 
     @Transactional
-    public UserDTO saveUser(RegistrationUserDTO registrationUserDTO) {
+    public UserDTO saveUser(RegistrationUserDTO registrationUserDTO, String langFromCookie) {
         log.info("Создание нового пользователя: {}", registrationUserDTO.getUsername());
         User user = userMapper.toUserEntity(registrationUserDTO);
         user.setPassword(passwordEncoder.encode(registrationUserDTO.getPassword()));
@@ -115,7 +115,8 @@ public class UserService implements UserDetailsService {
         log.info("Отправка verification email для пользователя: {}", user.getUsername());
         mailSenderService.sendHtmlEmail(user.getEmail(), subject, templateName, context);
 
-        user.setLanguage(Language.RUSSIAN);
+        Language userLanguage = mapLanguage(langFromCookie);
+        user.setLanguage(userLanguage);
         user.setRole(UserRole.USER);
         user.setCreatedAt(LocalDateTime.now());
         User savedUser = userRepository.save(user);
@@ -200,5 +201,12 @@ public class UserService implements UserDetailsService {
             log.error(UNAUTHORIZED_USER);
             throw new UnauthorizedUserException(UNAUTHORIZED_USER);
         }
+    }
+
+    private Language mapLanguage(String code) {
+        return switch (code.toLowerCase()) {
+            case "en" -> Language.ENGLISH;
+            default -> Language.RUSSIAN;
+        };
     }
 }

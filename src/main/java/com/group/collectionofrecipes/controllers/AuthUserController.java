@@ -25,6 +25,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -71,7 +72,9 @@ public class AuthUserController {
     }
 
     @PostMapping("/api/v1/auth/register")
-    public ResponseEntity<Object> createNewUser(@RequestBody @Valid RegistrationUserDTO registrationUserDTO) {
+    public ResponseEntity<Object> createNewUser(
+            @RequestBody @Valid RegistrationUserDTO registrationUserDTO,
+            @CookieValue(name = "app_lang", defaultValue = "ru") String langFromCookie) {
         log.info("Post  /api/v1/auth/register");
         try {
             if (!registrationUserDTO.getPassword().equals(registrationUserDTO.getConfirmPassword())) {
@@ -92,7 +95,7 @@ public class AuthUserController {
                         .body(new AppError(HttpStatus.BAD_REQUEST.value(), "Пользователь с такой почтой уже существует"));
             }
 
-            UserDTO userDTO = userService.saveUser(registrationUserDTO);
+            UserDTO userDTO = userService.saveUser(registrationUserDTO, langFromCookie);
             log.info("Пользователь успешно создан: {}", registrationUserDTO.getUsername());
 
             Map<String, Object> response = Map.of(

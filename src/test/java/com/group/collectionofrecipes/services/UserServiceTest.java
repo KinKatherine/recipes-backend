@@ -199,7 +199,7 @@ class UserServiceTest {
         });
 
         // Act
-        UserDTO resultDTO = userService.saveUser(registrationDTO);
+        UserDTO resultDTO = userService.saveUser(registrationDTO, "ru");
 
         // Assert
         assertNotNull(resultDTO);
