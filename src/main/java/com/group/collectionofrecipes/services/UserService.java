@@ -6,6 +6,7 @@ import com.group.collectionofrecipes.dto.userdto.UserDTO;
 import com.group.collectionofrecipes.entities.User;
 import com.group.collectionofrecipes.enums.Language;
 import com.group.collectionofrecipes.enums.UserRole;
+import com.group.collectionofrecipes.exceptions.AppError;
 import com.group.collectionofrecipes.exceptions.InvalidUserInfoException;
 import com.group.collectionofrecipes.exceptions.UnauthorizedUserException;
 import com.group.collectionofrecipes.mappers.UserMapper;
@@ -15,6 +16,8 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -208,5 +211,22 @@ public class UserService implements UserDetailsService {
             case "en" -> Language.ENGLISH;
             default -> Language.RUSSIAN;
         };
+    }
+
+    public void validateUserInfo(@Valid RegistrationUserDTO registrationUserDTO) {
+        if (!registrationUserDTO.getPassword().equals(registrationUserDTO.getConfirmPassword())) {
+            log.error("Пароли не совпадают для пользователя: {}", registrationUserDTO.getUsername());
+            throw new InvalidUserInfoException("Пароли не совпадают");
+        }
+
+        if (!isUsernameAvailable(registrationUserDTO.getUsername())) {
+            log.error("Пользователь с таким именем уже существует: {}", registrationUserDTO.getUsername());
+            throw new InvalidUserInfoException("Пользователь с таким именем уже существует");
+        }
+
+        if (!isEmailAvailable(registrationUserDTO.getEmail())) {
+            log.error("Пользователь с такой почтой уже существует: {}", registrationUserDTO.getEmail());
+            throw new InvalidUserInfoException("Пользователь с такой почтой уже существует");
+        }
     }
 }

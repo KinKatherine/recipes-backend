@@ -76,39 +76,14 @@ public class AuthUserController {
             @RequestBody @Valid RegistrationUserDTO registrationUserDTO,
             @CookieValue(name = "app_lang", defaultValue = "ru") String langFromCookie) {
         log.info("Post  /api/v1/auth/register");
-        try {
-            if (!registrationUserDTO.getPassword().equals(registrationUserDTO.getConfirmPassword())) {
-                log.error("Пароли не совпадают для пользователя: {}", registrationUserDTO.getUsername());
-                return ResponseEntity.badRequest()
-                        .body(new AppError(HttpStatus.BAD_REQUEST.value(), "Пароли не совпадают"));
-            }
-
-            if (!userService.isUsernameAvailable(registrationUserDTO.getUsername())) {
-                log.error("Пользователь с таким именем уже существует: {}", registrationUserDTO.getUsername());
-                return ResponseEntity.badRequest()
-                        .body(new AppError(HttpStatus.BAD_REQUEST.value(), "Пользователь с таким именем уже существует"));
-            }
-
-            if (!userService.isEmailAvailable(registrationUserDTO.getEmail())) {
-                log.error("Пользователь с такой почтой уже существует: {}", registrationUserDTO.getEmail());
-                return ResponseEntity.badRequest()
-                        .body(new AppError(HttpStatus.BAD_REQUEST.value(), "Пользователь с такой почтой уже существует"));
-            }
-
-            UserDTO userDTO = userService.saveUser(registrationUserDTO, langFromCookie);
-            log.info("Пользователь успешно создан: {}", registrationUserDTO.getUsername());
-
-            Map<String, Object> response = Map.of(
-                    FIELD_STATUS, FIELD_SUCCESS,
-                    FIELD_MESSAGE, "Пользователь c id " + userDTO.getId() + " успешно создан. Проверьте почту для подтверждения."
-            );
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            log.error("Ошибка при создании пользователя: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new AppError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Ошибка при создании пользователя" + e.getMessage()));
-        }
+        userService.validateUserInfo(registrationUserDTO);
+        UserDTO userDTO = userService.saveUser(registrationUserDTO, langFromCookie);
+        log.info("Пользователь успешно создан: {}", registrationUserDTO.getUsername());
+        Map<String, Object> response = Map.of(
+                FIELD_STATUS, FIELD_SUCCESS,
+                FIELD_MESSAGE, "Пользователь c id " + userDTO.getId() + " успешно создан. Проверьте почту для подтверждения."
+        );
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/api/v1/avatars")
@@ -167,6 +142,16 @@ public class AuthUserController {
         Map<String, Object> response = new HashMap<>();
         response.put(FIELD_STATUS, FIELD_ERROR);
         response.put(FIELD_MESSAGE, e.getMessage());
+        log.warn("Возврат ответа 400 BAD_REQUEST : {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(InvalidUserInfoException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidUserInfo(InvalidUserInfoException e) {
+        log.warn("Обработка исключения InvalidUserInfoException: {} ", e.getMessage());
+        Map<String, Object> response = new HashMap<>();
+        response.put(FIELD_STATUS, FIELD_ERROR);
+        response.put(FIELD_MESSAGE, e.getMessage());
         log.warn("Возврат ответа 400 BAD_REQUEST: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
@@ -221,14 +206,11 @@ public class AuthUserController {
         return ApiResponse.success(isAvailable);
     }
 
-    @ExceptionHandler(InvalidUserInfoException.class)
-    public ResponseEntity<Map<String, Object>> handleInvalidUsername(InvalidUserInfoException e) {
-        log.warn("Обработка исключения InvalidUsernameException: {} ", e.getMessage());
-
-        Map<String, Object> response = new HashMap<>();
-        response.put(FIELD_STATUS, FIELD_ERROR);
-        response.put(FIELD_MESSAGE, e.getMessage());
-        log.warn("Возврат ответа 400 : {}", e.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<Void>> handleAllOtherErrors(Exception ex) {
+        log.error("Критическая системная ошибка: ", ex);
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.unSuccess(HttpStatus.INTERNAL_SERVER_ERROR));
     }
 }
