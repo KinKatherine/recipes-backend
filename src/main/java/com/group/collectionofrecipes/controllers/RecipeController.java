@@ -50,6 +50,13 @@ public class RecipeController {
 
     private final RecipeService recipeService;
 
+    @GetMapping("/api/v1/recipes/sortByCookingTime")
+    public ApiResponse<List<RecipeDTO>> sortRecipesByCookingTime(@RequestParam(defaultValue = "0") int page, Principal principal) {
+        log.info("GET /api/v1/recipes/sortByCookingTime");
+        List<RecipeDTO> recipeDTOList = recipeService.sortRecipesByCookingTime(principal, page);
+        log.info("GET /api/v1/recipes/sortByCookingTime");
+        return ApiResponse.success(recipeDTOList);
+    }
 
     @GetMapping("/api/v1/recipes/recipe-of-the-day")
     public ApiResponse<RecipeDTO> getRecipeOfTheDay(HttpServletRequest request) {
