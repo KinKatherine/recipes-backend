@@ -9,10 +9,13 @@ import com.group.collectionofrecipes.dto.userdto.UserDTO;
 import com.group.collectionofrecipes.exceptions.AppError;
 import com.group.collectionofrecipes.exceptions.InvalidUserInfoException;
 import com.group.collectionofrecipes.exceptions.UnauthorizedUserException;
+import com.group.collectionofrecipes.exceptions.UnsupportedLanguageException;
 import com.group.collectionofrecipes.services.UserService;
 import com.group.collectionofrecipes.utils.JwtTokenUtils;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +37,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.security.Principal;
+import java.util.List;
 import java.util.Map;
 
 import static com.group.collectionofrecipes.utils.ApiConstants.FIELD_ERROR;
@@ -137,6 +141,32 @@ public class AuthUserController {
         return ApiResponse.success(language);
     }
 
+
+    @GetMapping("/api/v1/language")
+    public ResponseEntity<ApiResponse<Void>> setGuestLanguage(@RequestParam("lang") String lang,
+                                                              HttpServletResponse response) {
+        log.info("Get /api/v1/language - Установка куки для гостя: {}", lang);
+        List<String> supportedLanguages = List.of("ru", "en");
+        String languageCode = lang.toLowerCase();
+        if (!supportedLanguages.contains(languageCode)) {
+            throw new UnsupportedLanguageException("Language not supported: " + languageCode);
+        }
+        Cookie cookie = new Cookie("app_lang", languageCode);
+        cookie.setPath("/");
+        cookie.setMaxAge(60 * 60 * 24 * 30);
+        response.addCookie(cookie);
+        return ResponseEntity.ok(ApiResponse.success());
+    }
+
+    @ExceptionHandler(UnsupportedLanguageException.class)
+    public ResponseEntity<Map<String, Object>> handleUnsupportedLanguage(UnsupportedLanguageException e) {
+        log.warn("Обработка исключения UnsupportedLanguageException: {} ", e.getMessage());
+        Map<String, Object> response = new HashMap<>();
+        response.put(FIELD_STATUS, FIELD_ERROR);
+        response.put(FIELD_MESSAGE, e.getMessage());
+        log.warn("Возврат ответа 400 BAD_REQUEST: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
 
     @ExceptionHandler(UnauthorizedUserException.class)
     public ResponseEntity<Map<String, Object>> handleUnauthorizedUser(UnauthorizedUserException e) {
