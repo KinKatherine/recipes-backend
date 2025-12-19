@@ -9,10 +9,13 @@ import com.group.collectionofrecipes.dto.userdto.UserDTO;
 import com.group.collectionofrecipes.exceptions.AppError;
 import com.group.collectionofrecipes.exceptions.InvalidUserInfoException;
 import com.group.collectionofrecipes.exceptions.UnauthorizedUserException;
+import com.group.collectionofrecipes.exceptions.UnsupportedLanguageException;
 import com.group.collectionofrecipes.services.UserService;
 import com.group.collectionofrecipes.utils.JwtTokenUtils;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +25,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -34,6 +38,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.security.Principal;
+import java.util.List;
 import java.util.Map;
 
 import static com.group.collectionofrecipes.utils.ApiConstants.FIELD_ERROR;
@@ -67,41 +72,18 @@ public class AuthUserController {
     }
 
     @PostMapping("/api/v1/auth/register")
-    public ResponseEntity<Object> createNewUser(@RequestBody @Valid RegistrationUserDTO registrationUserDTO) {
+    public ResponseEntity<Object> createNewUser(
+            @RequestBody @Valid RegistrationUserDTO registrationUserDTO,
+            @CookieValue(name = "app_lang", defaultValue = "ru") String langFromCookie) {
         log.info("Post  /api/v1/auth/register");
-        try {
-            if (!registrationUserDTO.getPassword().equals(registrationUserDTO.getConfirmPassword())) {
-                log.error("Пароли не совпадают для пользователя: {}", registrationUserDTO.getUsername());
-                return ResponseEntity.badRequest()
-                        .body(new AppError(HttpStatus.BAD_REQUEST.value(), "Пароли не совпадают"));
-            }
-
-            if (!userService.isUsernameAvailable(registrationUserDTO.getUsername())) {
-                log.error("Пользователь с таким именем уже существует: {}", registrationUserDTO.getUsername());
-                return ResponseEntity.badRequest()
-                        .body(new AppError(HttpStatus.BAD_REQUEST.value(), "Пользователь с таким именем уже существует"));
-            }
-
-            if (!userService.isEmailAvailable(registrationUserDTO.getEmail())) {
-                log.error("Пользователь с такой почтой уже существует: {}", registrationUserDTO.getEmail());
-                return ResponseEntity.badRequest()
-                        .body(new AppError(HttpStatus.BAD_REQUEST.value(), "Пользователь с такой почтой уже существует"));
-            }
-
-            UserDTO userDTO = userService.saveUser(registrationUserDTO);
-            log.info("Пользователь успешно создан: {}", registrationUserDTO.getUsername());
-
-            Map<String, Object> response = Map.of(
-                    FIELD_STATUS, FIELD_SUCCESS,
-                    FIELD_MESSAGE, "Пользователь c id " + userDTO.getId() + " успешно создан. Проверьте почту для подтверждения."
-            );
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            log.error("Ошибка при создании пользователя: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new AppError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Ошибка при создании пользователя" + e.getMessage()));
-        }
+        userService.validateUserInfo(registrationUserDTO);
+        UserDTO userDTO = userService.saveUser(registrationUserDTO, langFromCookie);
+        log.info("Пользователь успешно создан: {}", registrationUserDTO.getUsername());
+        Map<String, Object> response = Map.of(
+                FIELD_STATUS, FIELD_SUCCESS,
+                FIELD_MESSAGE, "Пользователь c id " + userDTO.getId() + " успешно создан. Проверьте почту для подтверждения."
+        );
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/api/v1/avatars")
@@ -137,6 +119,42 @@ public class AuthUserController {
         return ApiResponse.success(language);
     }
 
+
+    @GetMapping("/api/v1/language")
+    public ResponseEntity<ApiResponse<Void>> setGuestLanguage(@RequestParam("lang") String lang,
+                                                              HttpServletResponse response) {
+        log.info("Get /api/v1/language - Установка куки для гостя: {}", lang);
+        List<String> supportedLanguages = List.of("ru", "en");
+        String languageCode = lang.toLowerCase();
+        if (!supportedLanguages.contains(languageCode)) {
+            throw new UnsupportedLanguageException("Language not supported: " + languageCode);
+        }
+        Cookie cookie = new Cookie("app_lang", languageCode);
+        cookie.setPath("/");
+        cookie.setMaxAge(60 * 60 * 24 * 30);
+        response.addCookie(cookie);
+        return ResponseEntity.ok(ApiResponse.success());
+    }
+
+    @ExceptionHandler(UnsupportedLanguageException.class)
+    public ResponseEntity<Map<String, Object>> handleUnsupportedLanguage(UnsupportedLanguageException e) {
+        log.warn("Обработка исключения UnsupportedLanguageException: {} ", e.getMessage());
+        Map<String, Object> response = new HashMap<>();
+        response.put(FIELD_STATUS, FIELD_ERROR);
+        response.put(FIELD_MESSAGE, e.getMessage());
+        log.warn("Возврат ответа 400 BAD_REQUEST : {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(InvalidUserInfoException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidUserInfo(InvalidUserInfoException e) {
+        log.warn("Обработка исключения InvalidUserInfoException: {} ", e.getMessage());
+        Map<String, Object> response = new HashMap<>();
+        response.put(FIELD_STATUS, FIELD_ERROR);
+        response.put(FIELD_MESSAGE, e.getMessage());
+        log.warn("Возврат ответа 400 BAD_REQUEST: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
 
     @ExceptionHandler(UnauthorizedUserException.class)
     public ResponseEntity<Map<String, Object>> handleUnauthorizedUser(UnauthorizedUserException e) {
@@ -188,14 +206,11 @@ public class AuthUserController {
         return ApiResponse.success(isAvailable);
     }
 
-    @ExceptionHandler(InvalidUserInfoException.class)
-    public ResponseEntity<Map<String, Object>> handleInvalidUsername(InvalidUserInfoException e) {
-        log.warn("Обработка исключения InvalidUsernameException: {} ", e.getMessage());
-
-        Map<String, Object> response = new HashMap<>();
-        response.put(FIELD_STATUS, FIELD_ERROR);
-        response.put(FIELD_MESSAGE, e.getMessage());
-        log.warn("Возврат ответа 400 : {}", e.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<Void>> handleAllOtherErrors(Exception ex) {
+        log.error("Критическая системная ошибка: ", ex);
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.unSuccess(HttpStatus.INTERNAL_SERVER_ERROR));
     }
 }
