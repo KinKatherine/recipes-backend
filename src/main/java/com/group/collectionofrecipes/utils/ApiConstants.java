@@ -38,12 +38,11 @@ public final class ApiConstants {
     public static final String RECIPE_RECENT_URI = "/api/v1/recipes/recent";
     public static final String RECIPE_ID_URI = "/api/v1/recipes/{recipeId}";
     public static final String RECIPES_FAVOURITE_URI = "/api/v1/recipes/favourites";
-    public static final String RECIPES_CONFIRMED_URI = "/api/v1/recipes/my-recipes";
+    public static final String RECIPES_USER_CONFIRMED_URI = "/api/v1/recipes/my-recipes";
     public static final String RECIPES_UNCONFIRMED_URI = "/api/v1/recipes/unconfirmed";
     public static final String RECIPES_POPULAR_URI = "/api/v1/recipes/popular";
     public static final String RECIPES_URI = "/api/v1/recipes";
-    public static final String RECIPES_USER_FAVOURITES_URI = "/api/v1/recipes/{id}";
-    public static final String RECIPES_USER_ADDED_URI = "/api/v1/recipes/my-recipes";
+    public static final String RECIPE_ADD_FAVOURITE_URI = "/api/v1/favorites/{recipeId}";
 
     public static final String RECIPES_CONFIRM_UNCONFIRMED_URI = "/api/v1/recipes/unconfirmed/confirm/{id}";
     public static final String RECIPES_DELETE_UNCONFIRMED_URI = "/api/v1/recipes/unconfirmed/delete/{id}";

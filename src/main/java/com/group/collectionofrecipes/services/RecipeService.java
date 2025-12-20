@@ -8,6 +8,7 @@ import com.group.collectionofrecipes.dto.ratingdto.RecipeRatingProjection;
 import com.group.collectionofrecipes.dto.recipedto.CreateRecipeDTO;
 import com.group.collectionofrecipes.dto.recipedto.RecipeDTO;
 import com.group.collectionofrecipes.entities.Category;
+import com.group.collectionofrecipes.entities.Favourite;
 import com.group.collectionofrecipes.entities.Ingredient;
 import com.group.collectionofrecipes.entities.Recipe;
 import com.group.collectionofrecipes.entities.RecipeIngredientMapping;
@@ -18,6 +19,7 @@ import com.group.collectionofrecipes.exceptions.SaveFileException;
 import com.group.collectionofrecipes.exceptions.SaveRecipeException;
 import com.group.collectionofrecipes.exceptions.UnauthorizedUserException;
 import com.group.collectionofrecipes.mappers.CommentMapper;
+import com.group.collectionofrecipes.mappers.FavouriteMapper;
 import com.group.collectionofrecipes.mappers.IngredientMapper;
 import com.group.collectionofrecipes.mappers.RecipeMapper;
 import com.group.collectionofrecipes.repositories.CategoryRepository;
@@ -47,6 +49,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -70,6 +73,7 @@ public class RecipeService {
     private final RatingRepository ratingRepository;
     private final IngredientRepository ingredientRepository;
     private final RecipeIngredientRepository recipeIngredientRepository;
+    private final FavouriteMapper  favouriteMapper;
 
 
     @Transactional
@@ -495,4 +499,28 @@ public class RecipeService {
                 .toList();
     }
 
+    @Transactional
+    public void updateIsFavourite(Long recipeId, Principal principal) {
+        if (principal == null) {
+            log.error(UNAUTHORIZED_USER);
+            throw new UnauthorizedUserException(UNAUTHORIZED_USER);
+        }
+
+        String username = principal.getName();
+        Optional<Favourite> existingFavourite = favouriteRepository.findByRecipeIdAndUserUsername(recipeId, username);
+        if (existingFavourite.isPresent()) {
+            favouriteRepository.delete(existingFavourite.get());
+        } else {
+            User user = userRepository.findByUsername(username).orElseThrow(()
+                    -> new EntityNotFoundException("Пользователь не найден по username"));
+
+            Recipe recipe = recipeRepository.findById(recipeId).orElseThrow(()
+                    -> new EntityNotFoundException("Рецепт не найден по recipeId"));
+
+            Favourite favourite = favouriteMapper.toFavouriteEntity(recipe, user);
+            favouriteRepository.save(favourite);
+        }
+
+        log.info("Обновление рецепта с  ID {} от пользователя {}: добавлен/удален из избранного", recipeId, username);
+    }
 }

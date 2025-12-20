@@ -17,6 +17,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -49,6 +50,15 @@ import static com.group.collectionofrecipes.utils.ApiConstants.FIELD_STATUS;
 public class RecipeController {
 
     private final RecipeService recipeService;
+
+    @PutMapping("/api/v1/favorites/{recipeId}")
+    public ApiResponse<RecipeDTO> updateIsFavourite(@PathVariable Long recipeId, Principal principal) {
+        log.info("PUT /api/v1/favorites/{recipeId}  рецепта с id  {}", recipeId);
+        recipeService.updateIsFavourite(recipeId, principal);
+        log.info("PUT /api/v1/favorites/{recipeId} - рецепт с id {} успешно изменил статус для пользователя {}",
+                recipeId, principal.getName());
+        return ApiResponse.success();
+    }
 
 
     @GetMapping("/api/v1/recipes/recipe-of-the-day")
@@ -158,6 +168,17 @@ public class RecipeController {
         return ApiResponse.success(recipeDTOList);
     }
 
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleDataIntegrityViolation(DataIntegrityViolationException e) {
+        log.warn("Обработка исключения DataIntegrityViolationException: {} ", e.getMessage());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put(FIELD_STATUS, FIELD_ERROR);
+        response.put(FIELD_MESSAGE, e.getMessage());
+        log.warn("Возврат ответа 409 CONFLICT: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
 
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleEntityNotFound(EntityNotFoundException e) {
