@@ -47,7 +47,6 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
     @Query("SELECT r FROM Recipe r " +
             "JOIN FETCH r.author " +
             "JOIN FETCH r.category " +
-            "LEFT JOIN FETCH r.favoriteBy " +
             "WHERE r.isConfirmed = true " +
             "ORDER BY r.id DESC")
     List<Recipe> findLatestRecipes(Pageable pageable); // страница с 3мя последними рецептами
