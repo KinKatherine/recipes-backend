@@ -51,11 +51,20 @@ public class RecipeController {
 
     private final RecipeService recipeService;
 
-    @PutMapping("/api/v1/favorites/{recipeId}")
-    public ApiResponse<RecipeDTO> updateIsFavourite(@PathVariable Long recipeId, Principal principal) {
-        log.info("PUT /api/v1/favorites/{recipeId}  рецепта с id  {}", recipeId);
-        recipeService.updateIsFavourite(recipeId, principal);
-        log.info("PUT /api/v1/favorites/{recipeId} - рецепт с id {} успешно изменил статус для пользователя {}",
+    @PostMapping("/api/v1/favorites/{recipeId}")
+    public ApiResponse<RecipeDTO> addIsFavourite(@PathVariable Long recipeId, Principal principal) {
+        log.info("POST /api/v1/favorites/{recipeId}  рецепта с id  {}", recipeId);
+        recipeService.addToFavourites(recipeId, principal);
+        log.info("POST /api/v1/favorites/{recipeId} - рецепт с id {} успешно добавлен в избранное для пользователя {}",
+                recipeId, principal.getName());
+        return ApiResponse.success();
+    }
+
+    @DeleteMapping("/api/v1/favorites/{recipeId}")
+    public ApiResponse<RecipeDTO> deleteIsFavourite(@PathVariable Long recipeId, Principal principal) {
+        log.info("DELETE /api/v1/favorites/{recipeId}  рецепта с id  {}", recipeId);
+        recipeService.removeFromFavourites(recipeId, principal);
+        log.info("PUT /api/v1/favorites/{recipeId} - рецепт с id {} успешно удален из избранного для пользователя {}",
                 recipeId, principal.getName());
         return ApiResponse.success();
     }
@@ -233,6 +242,17 @@ public class RecipeController {
         response.put(FIELD_MESSAGE, e.getMessage());
         log.warn("Возврат ответа 401 UNAUTHORIZED: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalState(IllegalStateException e) {
+        log.warn("Обработка исключения IllegalStateException: {} ", e.getMessage());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put(FIELD_STATUS, FIELD_ERROR);
+        response.put(FIELD_MESSAGE, e.getMessage());
+        log.warn("Возврат ответа 409 CONFLICT: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
 

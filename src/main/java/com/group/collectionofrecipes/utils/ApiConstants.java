@@ -42,7 +42,7 @@ public final class ApiConstants {
     public static final String RECIPES_UNCONFIRMED_URI = "/api/v1/recipes/unconfirmed";
     public static final String RECIPES_POPULAR_URI = "/api/v1/recipes/popular";
     public static final String RECIPES_URI = "/api/v1/recipes";
-    public static final String RECIPE_ADD_FAVOURITE_URI = "/api/v1/favorites/{recipeId}";
+    public static final String RECIPE_ADD_DELETE_FAVOURITE_URI = "/api/v1/favorites/{recipeId}";
 
     public static final String RECIPES_CONFIRM_UNCONFIRMED_URI = "/api/v1/recipes/unconfirmed/confirm/{id}";
     public static final String RECIPES_DELETE_UNCONFIRMED_URI = "/api/v1/recipes/unconfirmed/delete/{id}";
