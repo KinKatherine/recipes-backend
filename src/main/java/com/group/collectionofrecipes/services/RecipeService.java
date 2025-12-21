@@ -49,7 +49,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -499,28 +498,46 @@ public class RecipeService {
                 .toList();
     }
 
+
     @Transactional
-    public void updateIsFavourite(Long recipeId, Principal principal) {
+    public void addToFavourites(Long recipeId, Principal principal) {
         if (principal == null) {
             log.error(UNAUTHORIZED_USER);
             throw new UnauthorizedUserException(UNAUTHORIZED_USER);
         }
 
         String username = principal.getName();
-        Optional<Favourite> existingFavourite = favouriteRepository.findByRecipeIdAndUserUsername(recipeId, username);
-        if (existingFavourite.isPresent()) {
-            favouriteRepository.delete(existingFavourite.get());
-        } else {
-            User user = userRepository.findByUsername(username).orElseThrow(()
-                    -> new EntityNotFoundException("Пользователь не найден по username"));
-
-            Recipe recipe = recipeRepository.findById(recipeId).orElseThrow(()
-                    -> new EntityNotFoundException("Рецепт не найден по recipeId"));
-
-            Favourite favourite = favouriteMapper.toFavouriteEntity(recipe, user);
-            favouriteRepository.save(favourite);
+        if (favouriteRepository.existsByRecipeIdAndUserUsername(recipeId, username)) {
+            log.warn("Пользователь {} уже добавил рецепт ID {}.", username, recipeId);
+            throw new IllegalStateException("Рецепт уже в избранном.");
         }
 
-        log.info("Обновление рецепта с  ID {} от пользователя {}: добавлен/удален из избранного", recipeId, username);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден"));
+
+        Recipe recipe = recipeRepository.findById(recipeId)
+                .orElseThrow(() -> new EntityNotFoundException("Рецепт не найден"));
+
+        Favourite favourite = favouriteMapper.toFavouriteEntity(recipe, user);
+        favouriteRepository.save(favourite);
+
+        log.info("Рецепт ID {} добавлен в избранное пользователем {}", recipeId, username);
+    }
+
+    @Transactional
+    public void removeFromFavourites(Long recipeId, Principal principal) {
+        if (principal == null) {
+            throw new UnauthorizedUserException(UNAUTHORIZED_USER);
+        }
+
+        String username = principal.getName();
+        Favourite favourite = favouriteRepository.findByRecipeIdAndUserUsername(recipeId, username)
+                .orElseThrow(() -> {
+                    log.warn("Попытка удаления несуществующего избранного: user {}, recipe {}", username, recipeId);
+                    return new EntityNotFoundException("Рецепт не найден в вашем списке избранного.");
+                });
+
+        favouriteRepository.delete(favourite);
+        log.info("Рецепт ID {} удален из избранного пользователем {}", recipeId, username);
     }
 }
