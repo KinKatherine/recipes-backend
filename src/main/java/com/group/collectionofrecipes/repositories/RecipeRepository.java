@@ -108,4 +108,31 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
             "WHERE r.isConfirmed = true " +
             "AND LOWER(r.title) LIKE LOWER(CONCAT('%', :title, '%'))")
     List<Recipe> findByTitleContainingIgnoreCase(String title);
+
+    @Query("SELECT r FROM Recipe r " +
+            "JOIN FETCH r.author " +
+            "JOIN FETCH r.category " +
+            "WHERE r.isConfirmed = true")
+    Page<Recipe> sortRecipesByCookingTime(Pageable pageRequest);
+
+    // РАСШИРЕННЫЙ ПОИСК
+    @Query("SELECT r FROM Recipe r " +
+            "JOIN FETCH r.author " +
+            "JOIN FETCH r.category " +
+            "WHERE r.isConfirmed = true " +
+            "AND (:query IS NULL OR (" +
+            "   LOWER(r.title) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+            "   LOWER(r.description) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+            "   LOWER(r.instruction) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+            "   EXISTS (SELECT 1 FROM RecipeIngredientMapping rim JOIN rim.ingredient i WHERE rim.recipe = r AND LOWER(i.name) " +
+            " LIKE LOWER(CONCAT('%', :query, '%')))" +
+            ")) " +
+            "AND (:categoryId IS NULL OR r.category.id = :categoryId) " +
+            "AND (:authorId IS NULL OR r.author.id = :authorId) " +
+            "AND (:startDate IS NULL OR r.createdAt >= :startDate) " +
+            "AND (:endDate IS NULL OR r.createdAt <= :endDate)")
+    Page<Recipe> searchRecipes(@Param("query") String query,
+                               @Param("categoryId") Long categoryId,
+                               @Param("authorId") Long authorId,
+                               Pageable pageable);
 }

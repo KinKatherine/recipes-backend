@@ -59,6 +59,13 @@ public class RecipeController {
                 recipeId, principal.getName());
         return ApiResponse.success();
     }
+    @GetMapping("/api/v1/recipes/sortByCookingTime")
+    public ApiResponse<List<RecipeDTO>> sortRecipesByCookingTime(@RequestParam(defaultValue = "0") int page, Principal principal) {
+        log.info("GET /api/v1/recipes/sortByCookingTime");
+        List<RecipeDTO> recipeDTOList = recipeService.sortRecipesByCookingTime(principal, page);
+        log.info("GET /api/v1/recipes/sortByCookingTime");
+        return ApiResponse.success(recipeDTOList);
+    }
 
     @DeleteMapping("/api/v1/favorites/{recipeId}")
     public ApiResponse<RecipeDTO> deleteIsFavourite(@PathVariable Long recipeId, Principal principal) {
@@ -175,6 +182,21 @@ public class RecipeController {
         List<RecipeDTO> recipeDTOList = recipeService.findRecipeByTitle(title, principal);
         log.info("GET /api/v1/recipes/title {} - найдено {} рецептов", title, recipeDTOList.size());
         return ApiResponse.success(recipeDTOList);
+    }
+
+    @GetMapping("/api/v1/recipes/search")
+    public ApiResponse<List<RecipeDTO>> searchRecipes(
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Long authorId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "DESC") String sortDirection,
+            Principal principal) {
+        log.info("GET /api/v1/recipes/search");
+        Page<RecipeDTO> recipePage = recipeService.searchRecipes(query, categoryId, authorId, page, sortBy, sortDirection, principal);
+        log.info("GET /api/v1/recipes/search - найдено {} рецептов", recipePage.getTotalElements());
+        return ApiResponse.success(recipePage.getContent(), getPaginationInfo(recipePage));
     }
 
 
