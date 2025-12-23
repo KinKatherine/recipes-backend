@@ -165,6 +165,21 @@ public class RecipeController {
         return ApiResponse.success(recipeDTOList);
     }
 
+    @GetMapping("/api/v1/recipes/search")
+    public ApiResponse<List<RecipeDTO>> searchRecipes(
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Long authorId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "DESC") String sortDirection,
+            Principal principal) {
+        log.info("GET /api/v1/recipes/search");
+        Page<RecipeDTO> recipePage = recipeService.searchRecipes(query, categoryId, authorId, page, sortBy, sortDirection, principal);
+        log.info("GET /api/v1/recipes/search - найдено {} рецептов", recipePage.getTotalElements());
+        return ApiResponse.success(recipePage.getContent(), getPaginationInfo(recipePage));
+    }
+
 
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleEntityNotFound(EntityNotFoundException e) {
