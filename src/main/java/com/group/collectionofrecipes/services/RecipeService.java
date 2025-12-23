@@ -562,4 +562,23 @@ public class RecipeService {
         favouriteRepository.delete(favourite);
         log.info("Рецепт ID {} удален из избранного пользователем {}", recipeId, username);
     }
+    @Transactional(readOnly = true)
+    public Page<RecipeDTO> searchRecipes(String query, Long categoryId, Long authorId,
+                                         int page, String sortBy, String sortDirection,
+                                         Principal principal) {
+        log.info("Запрос на расширенный поиск рецептов");
+
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
+        Pageable pageable = PageRequest.of(page, FIXED_PAGE_SIZE, sort);
+
+        Page<Recipe> recipesPage = recipeRepository.searchRecipes(query, categoryId, authorId, pageable);
+
+        List<Long> recipeIds = recipesPage.getContent().stream().map(Recipe::getId).toList();
+        Map<Long, Double> ratingMap = getAverageRatingsMap(recipeRepository.findAverageRatingsForRecipes(recipeIds));
+        final String currentUsername = (principal != null) ? principal.getName() : null;
+
+        log.info("Найдено {} рецептов по запросу", recipesPage.getTotalElements());
+        return recipesPage.map(recipe -> mapRecipeWithRatingAndFavorite(recipe, ratingMap, currentUsername));
+    }
+
 }
