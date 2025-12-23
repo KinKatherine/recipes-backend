@@ -196,10 +196,10 @@ public class RecipeService {
         Pageable pageRequest = PageRequest.of(
                 pageNumber,
                 FIXED_PAGE_SIZE,
-                Sort.by("fb.cookingTime").ascending()
+                Sort.by("cookingTime").ascending()
         );
         Page<Recipe> sortedRecipesPage =
-                recipeRepository.sortRecipesByCookingTime(username, pageRequest);
+                recipeRepository.sortRecipesByCookingTime(pageRequest);
 
         List<Long> recipeIds = sortedRecipesPage.getContent().stream().map(Recipe::getId).toList();
         Map<Long, Double> ratingMap = getAverageRatingsMap(recipeRepository.findAverageRatingsForRecipes(recipeIds));
