@@ -1,6 +1,7 @@
 package com.group.collectionofrecipes.repositories;
 
 import com.group.collectionofrecipes.entities.ChatMessage;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,8 +15,8 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
     @Query("SELECT m FROM ChatMessage m WHERE m.recipient IS NULL AND m.id > :lastId ORDER BY m.sentAt ASC")
     List<ChatMessage> findPublicMessagesAfterId(@Param("lastId") Long lastId);
 
-    @Query("SELECT m FROM ChatMessage m WHERE m.recipient IS NULL ORDER BY m.sentAt DESC LIMIT 50")
-    List<ChatMessage> findLastPublicMessages();
+    @Query("SELECT m FROM ChatMessage m WHERE m.recipient IS NULL ORDER BY m.sentAt DESC")
+    List<ChatMessage> findLastPublicMessages(Pageable pageable);
 
     @Query("SELECT m FROM ChatMessage m " +
            "WHERE (m.sender.id = :userId1 AND m.recipient.id = :userId2) " +
