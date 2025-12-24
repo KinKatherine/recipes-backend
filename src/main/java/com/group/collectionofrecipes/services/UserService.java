@@ -151,7 +151,9 @@ public class UserService implements UserDetailsService {
             log.warn("Пользователь {} не найден при попытке удалить аватарку.", principal.getName());
             return new EntityNotFoundException(ERROR_USER_NOT_FOUND + principal.getName());
         });
-        storageService.deleteAvatarFile(filename);
+        if (!filename.equals(MAIN_USER_AVATAR_NAME)) {
+            storageService.deleteAvatarFile(filename);
+        }
         String username = principal.getName();
         userRepository.updateAvatarByUsername(username, MAIN_USER_AVATAR_NAME);
     }
