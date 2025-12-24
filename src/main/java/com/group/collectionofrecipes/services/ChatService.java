@@ -8,6 +8,7 @@ import com.group.collectionofrecipes.mappers.MessageMapper;
 import com.group.collectionofrecipes.repositories.ChatMessageRepository;
 import com.group.collectionofrecipes.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -28,8 +30,8 @@ public class ChatService {
     private final MessageMapper messageMapper;
 
     @Transactional
-    public ChatMessageDTO   sendMessage(String senderEmail, SendMessageDTO messageDTO) {
-        User sender = userRepository.findByUsername(senderEmail)
+    public ChatMessageDTO sendMessage(String senderUsername, SendMessageDTO messageDTO) {
+        User sender = userRepository.findByUsername(senderUsername)
                 .orElseThrow(() -> new UsernameNotFoundException("Sender not found"));
 
         ChatMessage message = ChatMessage.builder()
@@ -49,12 +51,12 @@ public class ChatService {
             ChatMessageDTO responseDTO = messageMapper.toChatMessageDTO(savedMsg);
 
             messagingTemplate.convertAndSendToUser(
-                    recipient.getEmail(), 
+                    recipient.getUsername(), 
                     "/queue/messages", 
                     responseDTO
             );
-             messagingTemplate.convertAndSendToUser(
-                    sender.getEmail(), 
+            messagingTemplate.convertAndSendToUser(
+                    sender.getUsername(), 
                     "/queue/messages", 
                     responseDTO
             );
@@ -80,7 +82,8 @@ public class ChatService {
     public List<ChatMessageDTO> getPublicHistory(Long fromId) {
         List<ChatMessage> messages;
         if (fromId == null || fromId == 0) {
-             messages = chatMessageRepository.findLastPublicMessages();
+             messages = chatMessageRepository.findLastPublicMessages(PageRequest.of(0, 50));
+             Collections.reverse(messages);
         } else {
              messages = chatMessageRepository.findPublicMessagesAfterId(fromId);
         }
@@ -93,11 +96,14 @@ public class ChatService {
     }
 
     @Transactional(readOnly = true)
-    public List<ChatMessageDTO> getPrivateHistory(String currentUserEmail, Long otherUserId) {
-        User currentUser = userRepository.findByUsername(currentUserEmail)
+    public List<ChatMessageDTO> getPrivateHistory(String currentUsername, String username) {
+        User currentUser = userRepository.findByUsername(currentUsername)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        User recipient = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Recipient not found"));
 
-        List<ChatMessage> messages = chatMessageRepository.findConversation(currentUser.getId(), otherUserId);
+
+        List<ChatMessage> messages = chatMessageRepository.findConversation(currentUser.getId(), recipient.getId());
 
         List<ChatMessageDTO> messageDTOS = new ArrayList<>();
         for (ChatMessage message : messages) {

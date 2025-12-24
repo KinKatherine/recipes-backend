@@ -56,11 +56,11 @@ public class ChatController {
         return ResponseEntity.ok(chatService.getPublicHistory(fromId));
     }
 
-    @GetMapping("/private/{userId}")
+    @GetMapping("/private/{username}")
     public ResponseEntity<List<ChatMessageDTO>> getPrivateHistory(
-            @PathVariable Long userId,
+            @PathVariable String username,
             Principal principal
     ) {
-        return ResponseEntity.ok(chatService.getPrivateHistory(principal.getName(), userId));
+        return ResponseEntity.ok(chatService.getPrivateHistory(principal.getName(), username));
     }
 }
